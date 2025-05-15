@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gerenciar Usuários</title>
+    <link rel="stylesheet" href="styles/usuarios.css" />
+    <link rel="stylesheet" href="styles/global.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h2>Lista de Usuários</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Email</th>
+            <th>Telefone</th>
+            <th>Instrumentos</th>
+            <th>Equipe</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="usuariosTabela">
+          <!-- Conteúdo gerado pelo JavaScript -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 🔽 MODAIS AQUI 🔽 -->
+
+    <!-- Modal Confirmar Exclusão -->
+    <div class="modal-overlay" id="modalExcluir">
+      <div class="modal">
+        <h3>Tem certeza que deseja excluir este usuário?</h3>
+        <div class="modal-buttons">
+          <button id="confirmarExclusaoBtn">Sim</button>
+          <button onclick="fecharModal('modalExcluir')">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Script -->
+    <script type="module" src="scripts/usuarios.js"></script>
+    <script type="module" src="scripts/header.js"></script>
+  </body>
+</html>

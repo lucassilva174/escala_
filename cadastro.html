@@ -1,0 +1,46 @@
+<!--Tela de cadastro-->
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadastro - Escala de Louvor</title>
+    <link rel="stylesheet" href="styles/cadastro.css">
+    <link rel="stylesheet" href="styles/global.css">
+  </head>
+  <body>
+    <div class="container">
+      <h2>Cadastro</h2>
+      <form id="cadastroForm">
+        <input type="text" id="nome" placeholder="Nome" required />
+        <input type="tel" id="telefone" placeholder="Telefone" required />
+        <input type="team" id="equipe" placeholder="Equipe" required />
+        <input type="email" id="email" placeholder="E-mail" required />
+        <input type="password" id="senha" placeholder="Senha" required />
+
+        <label>Instrumento(s):</label>
+        <select id="instrumentos" multiple required>
+          <option value="guitarra">Guitarra</option>
+          <option value="baixo">Baixo</option>
+          <option value="teclado">Teclado</option>
+          <option value="bateria">Bateria</option>
+          <option value="violão">Violão</option>
+          <option value="violino">Violino</option>
+          <option value="Backing-1">Backing-1</option>
+          <option value="Backing-2">Backing-2</option>
+        </select>
+        <div>
+          <label>
+            <input type="checkbox" id="ministro" />Ministro (Voz Principal)
+          </label>
+        </div>
+
+        <button type="submit">Cadastrar</button>
+      </form>
+      <!--<p>Já tem uma conta? <a href="index.html">Faça login</a></p>
+    </div>-->
+
+    <script type="module" src="scripts/cadastro.js"></script>
+    <!--<script type="module" src="scripts/header.js"></script>-->
+  </body>
+</html>

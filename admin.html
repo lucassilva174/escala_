@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Painel do Administrador</title>
+    <link rel="stylesheet" href="styles/admin.css" />
+    <link rel="stylesheet" href="styles/global.css" />
+  </head>
+
+  <body>
+    <div class="container">
+      <h2>Painel do Administrador</h2>
+
+      <div id="adminContent" style="display: none">
+        <h3>Adicionar Dias Disponíveis</h3>
+        <form id="form-dias">
+          <label>Data:</label>
+          <input type="date" id="data-disponivel" required />
+
+          <label>Descrição do Evento:</label>
+          <input type="text" id="descricao-evento" required />
+
+          <button type="submit">Adicionar Dia</button>
+        </form>
+
+        <h3>Dias Disponíveis</h3>
+        <ul id="lista-dias"></ul>
+
+        <h3>Adicionar Evento Extra</h3>
+        <form id="form-evento">
+          <label>Nome do Evento</label>
+          <input type="text" id="nome-evento" required />
+
+          <label>Data do Evento</label>
+          <input type="date" id="data-evento" required />
+
+          <button type="submit">Adicionar Evento</button>
+        </form>
+
+        <h3>Eventos Extras</h3>
+        <ul id="lista-eventos"></ul>
+        <a href="usuarios.html">Gerenciar Usuários</a>
+      </div>
+    </div>
+    <div id="modalConfirmacao" class="modal" style="display: none">
+      <div class="modal-content">
+        <p id="modalMensagem">Tem certeza que deseja excluir?</p>
+        <div class="modal-botoes">
+          <button id="btnCancelarModal">Cancelar</button>
+          <button id="btnConfirmarModal">Excluir</button>
+        </div>
+      </div>
+    </div>
+    <div id="toast" class="toast"></div>
+    <script type="module" src="scripts/header.js"></script>
+    <script type="module" src="scripts/admin.js"></script>
+  </body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Escala de Louvor</title>
+    <link rel="stylesheet" href="styles/global.css" />
+    <link rel="stylesheet" href="styles/index.css" />
+    <style>
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 10;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+        animation: fadeIn 0.3s ease-out;
+      }
+
+      .modal-content {
+        background-color: #fff;
+        margin: 15% auto;
+        padding: 20px;
+        border-radius: 12px;
+        width: 80%;
+        max-width: 400px;
+        text-align: center;
+        animation: slideIn 0.5s ease-out;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+      }
+
+      .close {
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .toast {
+        position: fixed;
+        top: 20%;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 16px 24px;
+        background-color: #4caf50;
+        color: white;
+        border-radius: 8px;
+        font-weight: bold;
+        z-index: 9999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+
+      .toast.show {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateY(-50px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <h2>Login</h2>
+      <form id="loginForm">
+        <input type="email" id="email" placeholder="E-mail" required />
+        <input type="password" id="senha" placeholder="Senha" required />
+        <button type="submit">Entrar</button>
+      </form>
+      <p>Não tem uma conta? <a href="cadastro.html">Cadastre-se</a></p>
+    </div>
+
+    <!-- Modal de Sucesso para Administrador -->
+    <div id="adminModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <p>Login de administrador realizado com sucesso!</p>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast hidden"></div>
+
+    <!-- Scripts -->
+    <script type="module" src="scripts/firebase-config.js"></script>
+    <script type="module" src="scripts/auth.js"></script>
+
+    <!-- Exibe toast apenas se login tiver sido bem-sucedido -->
+    <script type="module">
+      import { auth } from "./scripts/firebase-config.js";
+      import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+      onAuthStateChanged(auth, (user) => {
+        const toast = document.getElementById("toast");
+        const loginSucesso = localStorage.getItem("loginSucesso");
+
+        if (user && loginSucesso === "true") {
+          toast.textContent = "Login realizado com sucesso!";
+          toast.classList.remove("hidden");
+          toast.classList.add("show");
+
+          setTimeout(() => {
+            toast.classList.remove("show");
+            toast.classList.add("hidden");
+            localStorage.removeItem("loginSucesso");
+          }, 3000);
+        }
+      });
+    </script>
+
+    <!-- Evento do botão de login -->
+    <script type="module">
+      import { login } from "./scripts/auth.js";
+
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const email = document.getElementById("email").value;
+          const senha = document.getElementById("senha").value;
+          //localStorage.setItem("loginSucesso", "true");
+          await login(email, senha);
+        });
+    </script>
+  </body>
+</html>

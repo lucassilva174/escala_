@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Selecione os Dias Disponíveis</title>
+    <link rel="stylesheet" href="styles/dias.css" />
+    <link rel="stylesheet" href="styles/global.css" />
+  </head>
+  <body>
+    <div class="container-pagina">
+      <!-- o .header-global vai aparecer aqui dinamicamente -->
+      <div class="container">
+        <h1>Selecione os dias disponíveis</h1>
+
+        <form id="formDias">
+          <div id="dias-container" class="checkbox-group"></div>
+          <button type="submit">Salvar Disponibilidade</button>
+        </form>
+
+        <p class="mensagem" id="mensagemFeedback"></p>
+      </div>
+    </div>
+    <!-- Modal para selecionar instrumento -->
+    <div id="instrumentoModal" class="modal-overlay" style="display: none">
+      <div class="modal-content">
+        <h3>Escolha o instrumento</h3>
+        <div id="listaInstrumentosModal" class="instrumentos-lista">
+          <!-- Instrumentos serão carregados aqui -->
+        </div>
+        <div class="modal-buttons">
+          <button id="cancelarInstrumento">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="scripts/dias.js"></script>
+    <script type="module" src="scripts/header.js"></script>
+  </body>
+</html>
