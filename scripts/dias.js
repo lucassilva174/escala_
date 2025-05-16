@@ -61,7 +61,7 @@ function abrirModal(instrumentos, data, descricao) {
 function fecharModal() {
   document.getElementById("modalInstrumento").style.display = "none";
 }
-
+//Cor do toast
 function exibirToast(msg, cor = "#e74c3c") {
   const toast = document.createElement("div");
   toast.className = "toast show";
@@ -70,6 +70,7 @@ function exibirToast(msg, cor = "#e74c3c") {
   document.body.appendChild(toast);
 
   setTimeout(() => toast.remove(), 3000);
+  toast.classList.add(cor === "#27ae60" ? "success" : "error");
 }
 
 // 🔸 Verifica se outro usuário já marcou o mesmo instrumento para o dia
