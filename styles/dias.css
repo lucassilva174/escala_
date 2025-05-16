@@ -56,23 +56,6 @@ h1 {
   transform: scale(1.2);
 }
 
-/* Botão salvar */
-button[type="submit"] {
-  width: 100%;
-  padding: 12px;
-  font-size: 1rem;
-  background-color: #1a73e8;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-button[type="submit"]:hover {
-  background-color: #155cb0;
-}
-
 /* Feedback */
 .mensagem {
   text-align: center;

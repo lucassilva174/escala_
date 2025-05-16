@@ -84,7 +84,10 @@ async function verificarConflito(data, descricao, instrumentoSelecionado) {
     const dados = doc.data();
     if (
       dados.diasSelecionados?.some(
-        (d) => d.data === data && d.instrumento === instrumentoSelecionado
+        (d) =>
+          d.data === data &&
+          d.instrumento === instrumentoSelecionado &&
+          d.descricao === descricao
       )
     ) {
       conflito = dados.nome;
@@ -95,7 +98,7 @@ async function verificarConflito(data, descricao, instrumentoSelecionado) {
     exibirToast(`Instrumento já marcado por ${conflito}`);
   } else {
     await salvarEscolha(data, descricao, instrumentoSelecionado);
-    exibirToast("Instrumento salvo com sucesso!", "#27ae60");
+    exibirToast("Obrigado pelo seu Servir !", "#27ae60");
     fecharModal();
   }
 }
