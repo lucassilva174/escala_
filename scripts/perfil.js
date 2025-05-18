@@ -57,20 +57,46 @@ onAuthStateChanged(auth, async (user) => {
 
 async function carregarCalendario(uid) {
   const eventos = [];
+  const mapaPorData = {};
 
-  const diasRef = collection(db, "diasPreenchidos");
-  const q = query(diasRef, where("uid", "==", uid));
-  const querySnapshot = await getDocs(q);
+  const escalasRef = collection(db, "escalas");
+  const snapshot = await getDocs(escalasRef);
 
-  querySnapshot.forEach((doc) => {
-    const data = doc.data();
-    if (Array.isArray(data.dias)) {
-      data.dias.forEach((dia) => {
-        eventos.push({
-          title: "Disponível",
-          start: dia,
-          color: "#47a447",
-        });
+  snapshot.forEach((docSnap) => {
+    const dados = docSnap.data();
+    const nome = dados.nome || "Usuário";
+    const userId = dados.uid;
+
+    (dados.diasSelecionados || []).forEach((dia) => {
+      const data = dia.data;
+      const instrumento = dia.instrumento;
+      const descricao = dia.descricao || "Evento";
+
+      if (!mapaPorData[data]) mapaPorData[data] = [];
+
+      mapaPorData[data].push({ nome, instrumento, descricao, userId });
+    });
+  });
+
+  // 🔹 Monta apenas um evento verde e um laranja por dia
+  Object.keys(mapaPorData).forEach((data) => {
+    const lista = mapaPorData[data];
+    const temUsuarioAtual = lista.some((item) => item.userId === uid);
+    const temOutros = lista.some((item) => item.userId !== uid);
+
+    if (temUsuarioAtual) {
+      eventos.push({
+        title: "Marcado",
+        start: data,
+        color: "#47a447", // verde
+      });
+    }
+
+    if (temOutros) {
+      eventos.push({
+        title: "Marcado",
+        start: data,
+        color: "#f39c12", // laranja
       });
     }
   });
@@ -86,6 +112,42 @@ async function carregarCalendario(uid) {
       right: "",
     },
     events: eventos,
+    dateClick: function (info) {
+      const lista = mapaPorData[info.dateStr];
+      if (!lista) return;
+
+      const container = document.getElementById("modalLista");
+      const titulo = document.getElementById("modalData");
+      const manhaEl = document.getElementById("listaManha");
+      const noiteEl = document.getElementById("listaNoite");
+
+      const dataFormatada = new Date(info.dateStr).toLocaleDateString("pt-BR", {
+        timeZone: "UTC",
+      });
+      titulo.textContent = dataFormatada;
+
+      // Limpa listas
+      manhaEl.innerHTML = "";
+      noiteEl.innerHTML = "";
+
+      // Ordena por descrição
+      lista.forEach((item) => {
+        const li = document.createElement("li");
+        li.textContent = `${item.nome} - ${item.instrumento}`;
+
+        const desc = item.descricao.toLowerCase();
+        if (desc.includes("manhã") || desc.includes("manha")) {
+          manhaEl.appendChild(li);
+        } else if (desc.includes("noite")) {
+          noiteEl.appendChild(li);
+        } else {
+          // Se não houver indicação, joga na manhã por padrão
+          manhaEl.appendChild(li);
+        }
+      });
+
+      container.style.display = "flex";
+    },
   });
 
   calendar.render();

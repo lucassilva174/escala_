@@ -1,3 +1,4 @@
+/*perfil.css*/
 /* Reset básico */
 * {
   margin: 0;
@@ -137,4 +138,104 @@ h2 {
 
 .botoes button:hover {
   background-color: #0056b3;
+}
+/* 🔹 Modal flutuante centralizado e responsivo */
+#modalLista {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+#modalLista .modal-content {
+  background-color: white;
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 600px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  animation: fadeInModal 0.3s ease-out;
+}
+
+@keyframes fadeInModal {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Título do modal */
+#modalLista h3 {
+  margin-bottom: 16px;
+  font-size: 1.2rem;
+  color: #222;
+}
+
+/* Subtítulos */
+#modalLista h4 {
+  font-size: 1rem;
+  color: #1a73e8;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 4px;
+}
+
+/* Listas */
+#modalLista ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#modalLista li {
+  padding: 6px 0;
+  font-size: 0.95rem;
+  border-bottom: 1px solid #eee;
+  color: #444;
+}
+
+/* Layout flexível das colunas */
+#modalLista .modal-columns {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 16px;
+  text-align: left;
+}
+
+#modalLista .modal-columns > div {
+  width: 100%;
+}
+
+#modalLista h4 {
+  font-size: 1rem;
+  color: #1a73e8;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 4px;
+}
+
+/* Botão de fechar no modal */
+#modalLista button {
+  margin-top: 24px;
+  background-color: #1a73e8;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+#modalLista button:hover {
+  background-color: #155ab6;
 }

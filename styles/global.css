@@ -175,3 +175,35 @@ button:hover {
     transform: translate(-50%, -40%);
   }
 }
+
+/*Estilo do calendário*/
+.modal-lista {
+  position: fixed;
+  inset: 0;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+}
+
+.modal-lista .modal-content {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+#listaPessoas {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+}
+
+#listaPessoas li {
+  padding: 6px 0;
+  border-bottom: 1px solid #ddd;
+}

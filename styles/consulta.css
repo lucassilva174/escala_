@@ -1,38 +1,9 @@
-/* Container centralizado */
-.container {
-  /*background-color: rgba(255, 255, 255, 0.95);*/
-  padding: 24px 32px;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-  max-width: 700px;
-  margin: 40px auto;
-}
-
 /* Título principal */
 h2 {
   text-align: center;
   margin-bottom: 20px;
   font-size: 1.6rem;
   color: #202124;
-}
-
-/* Lista da escala */
-#listaEscala {
-  list-style: none;
-  padding: 0;
-}
-
-#listaEscala li {
-  background-color: #f1f3f4;
-  margin-bottom: 10px;
-  padding: 12px 16px;
-  border-radius: 8px;
-  color: #333;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  font-size: 0.98rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
 /* Estilo personalizado para marcar dias do próprio usuário */
@@ -42,22 +13,48 @@ li.usuario-logado {
   border-left: 4px solid #1a73e8;
 }
 
-/* Botão voltar */
-.btn-voltar {
-  display: block;
+.tabela-container {
+  max-width: 1000px;
+  margin: 30px auto;
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  overflow-x: auto;
+}
+
+table.tabela-escala {
   width: 100%;
-  max-width: 200px;
-  margin: 24px auto 0;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+table.tabela-escala thead {
+  background-color: #f1f1f1;
+}
+
+table.tabela-escala th,
+table.tabela-escala td {
   padding: 12px;
-  text-align: center;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+table.tabela-escala tr:hover {
+  background-color: #fafafa;
+}
+
+.btn-editar {
   background-color: #1a73e8;
   color: white;
-  border-radius: 8px;
-  text-decoration: none;
-  font-size: 1rem;
+  border: none;
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
   transition: background 0.3s ease;
 }
 
-.btn-voltar:hover {
-  background-color: #155cb0;
+.btn-editar:hover {
+  background-color: #155ab6;
 }
