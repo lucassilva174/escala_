@@ -100,6 +100,11 @@ async function verificarConflito(data, descricao, instrumentoSelecionado) {
     await salvarEscolha(data, descricao, instrumentoSelecionado);
     exibirToast("Obrigado pelo seu Servir !", "#27ae60");
     fecharModal();
+
+    // ⏳ Aguarda 2.5 segundos e atualiza a página
+    setTimeout(() => {
+      location.reload();
+    }, 2000);
   }
 }
 
@@ -156,6 +161,18 @@ document.addEventListener("DOMContentLoaded", () => {
       ministro: dados.ministro || false,
     };
 
+    // 🔍 Buscar os dias já marcados pelo usuário atual
+    const escalaRef = doc(db, "escalas", user.uid);
+    const escalaSnap = await getDoc(escalaRef);
+    const diasMarcados = new Set();
+
+    if (escalaSnap.exists()) {
+      const dias = escalaSnap.data().diasSelecionados || [];
+      dias.forEach((d) => {
+        diasMarcados.add(`${d.data}|${d.descricao}`);
+      });
+    }
+
     const diasPadrao = await obterDiasDefinidosPeloAdmin();
 
     // 🔸 Buscar eventos extras
@@ -167,6 +184,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 🔸 Juntar todos os dias (padrao + extras)
     const dias = [...diasPadrao, ...eventosExtras];
+
+    // ✅ Ordena os dias cronologicamente (por data ISO)
+    dias.sort((a, b) => a.data.localeCompare(b.data));
 
     const diasContainer = document.getElementById("dias-container");
     diasContainer.innerHTML = "";
@@ -182,12 +202,16 @@ document.addEventListener("DOMContentLoaded", () => {
       const label = document.createElement("label");
       label.classList.add("checkbox-dia");
 
+      const chave = `${dia.data}|${dia.descricao || dia.nome || "Evento"}`;
+      const jaMarcado = diasMarcados.has(chave);
+
       const texto =
         `${dia.descricao || dia.nome || "Evento"} (${dia.data
           .split("-")
           .reverse()
           .join("/")})` +
-        (dia.extra ? " <span style='color:green'>(Extra)</span>" : "");
+        (dia.extra ? " <span style='color:green'>(Extra)</span>" : "") +
+        (jaMarcado ? " <span style='color:gray;'>(já marcado)</span>" : "");
 
       label.innerHTML = `<span ${
         dia.extra ? 'style="font-weight: bold;"' : ""

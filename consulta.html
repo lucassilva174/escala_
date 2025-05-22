@@ -8,13 +8,110 @@
     <link rel="stylesheet" href="styles/consulta.css" />
   </head>
   <body>
-    <!-- topo com header.js -->
+    <!-- Topo com header.js -->
     <main>
       <h2>Consulta da Escala</h2>
+
+      <div style="text-align: right; margin-bottom: 16px">
+        <button id="btnAbrirModal">+ Adicionar Participante</button>
+
+        <button id="btnExportarCSV">Exportar CSV</button>
+
+        <button id="btnExportarPDF" onclick="exportarPDF()">
+          Exportar PDF
+        </button>
+
+        <button
+          id="btnLimparDados"
+          style="background-color: #e74c3c; color: white"
+        >
+          Limpar Escala do Mês
+        </button>
+      </div>
+
+      <!-- Modal de Novo Participante -->
+      <div id="modalParticipante" class="modal" style="display: none">
+        <div class="modal-content" style="max-width: 500px">
+          <h3>Adicionar Participantes</h3>
+          <form id="formNovoParticipante">
+            <label>Nome</label>
+            <input type="text" id="novoNome" required />
+
+            <label>Instrumento</label>
+            <input type="text" id="novoInstrumento" required />
+
+            <label>Data</label>
+            <input type="date" id="novoData" required />
+
+            <label>Descrição</label>
+            <input type="text" id="novoDescricao" required />
+
+            <div style="text-align: center; margin-top: 12px">
+              <button type="button" id="btnAddParticipante">+ Adicionar</button>
+            </div>
+          </form>
+
+          <!-- Lista dos participantes adicionados -->
+          <ul
+            id="listaParticipantes"
+            style="margin-top: 20px; list-style: none; padding: 0"
+          ></ul>
+
+          <div
+            style="
+              display: flex;
+              justify-content: center;
+              gap: 10px;
+              margin-top: 20px;
+            "
+          >
+            <button id="btnSalvarTodosParticipantes">Salvar Todos</button>
+            <button type="button" onclick="fecharModalParticipante()">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabela de escala -->
       <div id="tabelaEscala" class="tabela-container"></div>
     </main>
 
+    <!-- Modal de Edição -->
+    <div id="modalEdicao" class="modal" style="display: none">
+      <div class="modal-content">
+        <h3>Editar Participante</h3>
+        <form id="formEdicao">
+          <label for="nomeEdicao">Nome:</label>
+          <input type="text" id="nomeEdicao" required />
+
+          <label for="instrumentoEdicao">Instrumento:</label>
+          <input type="text" id="instrumentoEdicao" required />
+
+          <label for="descricaoEdicao">Descrição:</label>
+          <input type="text" id="descricaoEdicao" required />
+
+          <div
+            class="botoes"
+            style="
+              display: flex;
+              gap: 8px;
+              justify-content: center;
+              margin-top: 16px;
+            "
+          >
+            <button type="submit">Salvar</button>
+            <button type="button" onclick="fecharModalEdicao()">
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Scripts -->
     <script type="module" src="scripts/consulta.js"></script>
     <script type="module" src="scripts/header.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   </body>
 </html>

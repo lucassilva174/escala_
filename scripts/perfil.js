@@ -59,6 +59,7 @@ async function carregarCalendario(uid) {
   const eventos = [];
   const mapaPorData = {};
 
+  // 🔹 Escalas marcadas pelos usuários
   const escalasRef = collection(db, "escalas");
   const snapshot = await getDocs(escalasRef);
 
@@ -73,34 +74,43 @@ async function carregarCalendario(uid) {
       const descricao = dia.descricao || "Evento";
 
       if (!mapaPorData[data]) mapaPorData[data] = [];
-
       mapaPorData[data].push({ nome, instrumento, descricao, userId });
     });
   });
 
-  // 🔹 Monta apenas um evento verde e um laranja por dia
+  // 🔹 Eventos adicionados manualmente (grupoExtra)
+  const grupoExtraSnap = await getDocs(collection(db, "grupoExtra"));
+  grupoExtraSnap.forEach((doc) => {
+    const dados = doc.data();
+    const data = dados.data;
+    const nome = dados.nome || "Participante";
+    const instrumento = dados.instrumento || "—";
+    const descricao = dados.descricao || "Evento Extra";
+
+    if (!mapaPorData[data]) mapaPorData[data] = [];
+    mapaPorData[data].push({
+      nome,
+      instrumento,
+      descricao,
+      userId: "grupoExtra",
+    });
+  });
+
+  // 🔸 Monta os eventos (verde = usuário atual, laranja = outros)
   Object.keys(mapaPorData).forEach((data) => {
     const lista = mapaPorData[data];
     const temUsuarioAtual = lista.some((item) => item.userId === uid);
     const temOutros = lista.some((item) => item.userId !== uid);
 
     if (temUsuarioAtual) {
-      eventos.push({
-        title: "Marcado",
-        start: data,
-        color: "#47a447", // verde
-      });
+      eventos.push({ title: "Marcado", start: data, color: "#47a447" }); // Verde
     }
-
     if (temOutros) {
-      eventos.push({
-        title: "Marcado",
-        start: data,
-        color: "#f39c12", // laranja
-      });
+      eventos.push({ title: "Marcado", start: data, color: "#f39c12" }); // Laranja
     }
   });
 
+  // 🔹 Renderiza calendário
   const calendarEl = document.getElementById("calendarioContainer");
   const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: "dayGridMonth",
@@ -126,23 +136,20 @@ async function carregarCalendario(uid) {
       });
       titulo.textContent = dataFormatada;
 
-      // Limpa listas
       manhaEl.innerHTML = "";
       noiteEl.innerHTML = "";
 
-      // Ordena por descrição
       lista.forEach((item) => {
         const li = document.createElement("li");
         li.textContent = `${item.nome} - ${item.instrumento}`;
-
         const desc = item.descricao.toLowerCase();
+
         if (desc.includes("manhã") || desc.includes("manha")) {
           manhaEl.appendChild(li);
         } else if (desc.includes("noite")) {
           noiteEl.appendChild(li);
         } else {
-          // Se não houver indicação, joga na manhã por padrão
-          manhaEl.appendChild(li);
+          manhaEl.appendChild(li); // padrão
         }
       });
 
