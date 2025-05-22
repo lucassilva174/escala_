@@ -23,6 +23,27 @@
         <!-- Calendário será renderizado aqui -->
       </div>
     </main>
+    <!-- Modal de informações ao clicar no dia -->
+    <div id="modalLista" class="modal">
+      <div class="modal-content">
+        <h3>Participantes do dia <span id="modalData"></span></h3>
+        <div class="modal-columns">
+          <div>
+            <h4>Manhã</h4>
+            <ul id="listaManha"></ul>
+          </div>
+          <div>
+            <h4>Noite</h4>
+            <ul id="listaNoite"></ul>
+          </div>
+        </div>
+        <button
+          onclick="document.getElementById('modalLista').style.display='none'"
+        >
+          Fechar
+        </button>
+      </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
     <script type="module" src="scripts/perfil.js"></script>

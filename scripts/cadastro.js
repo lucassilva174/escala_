@@ -15,10 +15,16 @@ document
     const equipe = document.getElementById("equipe").value;
     const email = document.getElementById("email").value;
     const senha = document.getElementById("senha").value;
-    const instrumentos = Array.from(
-      document.getElementById("instrumentos").selectedOptions
-    ).map((opt) => opt.value);
-    const ministro = document.getElementById("ministro").checked;
+
+    const checkboxes = document.querySelectorAll(
+      '.instrumentos-box input[type="checkbox"]:checked'
+    );
+    const instrumentos = Array.from(checkboxes).map((el) => el.value);
+
+    if (instrumentos.length === 0) {
+      alert("Selecione pelo menos um instrumento.");
+      return;
+    }
 
     try {
       const userCredential = await createUserWithEmailAndPassword(
@@ -33,7 +39,6 @@ document
         telefone,
         email,
         instrumentos,
-        ministro,
         equipe,
       });
 

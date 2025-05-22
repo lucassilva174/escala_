@@ -4,73 +4,110 @@ body {
   align-items: center;
   min-height: 100vh;
   padding: 20px;
+  font-family: "Segoe UI", sans-serif;
+  background-color: #f9f9f9;
 }
 
 .container {
-  max-width: 400px;
+  max-width: 420px;
   width: 100%;
-  background-color: rgba(245, 243, 243, 0.9);
+  background-color: rgba(245, 243, 243, 0.95);
   padding: 24px;
   border-radius: 12px;
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .container h2 {
   text-align: center;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   color: #333;
 }
 
-.container input {
+.container input,
+.container select {
   width: 100%;
   padding: 12px;
-  margin: 10px 0;
+  margin-top: 10px;
   border-radius: 6px;
   border: 1px solid #ccc;
   font-size: 16px;
 }
 
+/* Botão de envio */
 .container button {
   width: 100%;
   padding: 12px;
   background-color: #1a73e8;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 16px;
   cursor: pointer;
-  margin-top: 10px;
+  margin-top: 20px;
+  transition: background 0.3s ease;
 }
 
 .container button:hover {
-  background-color: #1765cc;
+  background-color: #155cb0;
 }
 
+/* Link para login */
 .link-login {
   text-align: center;
-  margin-top: 12px;
+  margin-top: 16px;
   font-size: 0.95rem;
 }
-/* Ajuste na caixa de seleção múltipla */
-#instrumentos {
-  width: 90%; /* Faz a caixa ocupar toda a largura do formulário */
-  height: 100px; /* Aumenta a altura para mostrar mais opções */
-  padding: 5px;
-  font-size: 16px;
+
+/* Estilo para os checkboxes de instrumentos */
+.checkbox-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+  margin-bottom: 5px;
 }
-label[for="ministro"] {
+
+.checkbox-lista label {
   display: flex;
   align-items: center;
-  gap: 5px;
+  font-size: 15px;
+  gap: 8px;
+  cursor: pointer;
 }
-/* Adicionar espaço antes do botão */
-button[type="submit"] {
+
+/* Ajustes no label */
+.container label {
+  display: block;
+  font-size: 15px;
+  color: #444;
   margin-top: 15px;
+  margin-bottom: 5px;
 }
-/* Alinhar checkbox e label na mesma linha */
-#ministro {
-  width: 20px;
-  height: 25px;
-  margin-right: 5px;
+/* Caixa de instrumentos agrupada */
+.instrumentos-box {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 140px; /* altura similar à caixa original */
+  overflow-y: auto;
+  font-size: 15px;
+}
+
+.instrumento-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.instrumento-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
   cursor: pointer;
 }

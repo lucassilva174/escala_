@@ -3,32 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Consulta - Escala de Louvor</title>
-    <link rel="stylesheet" href="styles/consulta.css" />
+    <title>Consulta da Escala</title>
     <link rel="stylesheet" href="styles/global.css" />
+    <link rel="stylesheet" href="styles/consulta.css" />
   </head>
   <body>
-    <div class="container">
+    <!-- topo com header.js -->
+    <main>
       <h2>Consulta da Escala</h2>
-      <div class="info">
-        <p><strong>Nome:</strong> <span id="nome"></span></p>
-        <p><strong>Instrumento:</strong> <span id="instrumento"></span></p>
-        <p><strong>Equipe:</strong> <span id="equipe"></span></p>
-      </div>
+      <div id="tabelaEscala" class="tabela-container"></div>
+    </main>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Dia</th>
-            <th>Evento</th>
-          </tr>
-        </thead>
-        <tbody id="tabela-corpo">
-          <!-- preenchido via JS -->
-        </tbody>
-      </table>
-    </div>
+    <script type="module" src="scripts/consulta.js"></script>
     <script type="module" src="scripts/header.js"></script>
   </body>
 </html>
