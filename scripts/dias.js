@@ -61,7 +61,7 @@ function abrirModal(instrumentos, data, descricao) {
 function fecharModal() {
   document.getElementById("modalInstrumento").style.display = "none";
 }
-
+//Cor do toast
 function exibirToast(msg, cor = "#e74c3c") {
   const toast = document.createElement("div");
   toast.className = "toast show";
@@ -70,6 +70,7 @@ function exibirToast(msg, cor = "#e74c3c") {
   document.body.appendChild(toast);
 
   setTimeout(() => toast.remove(), 3000);
+  toast.classList.add(cor === "#27ae60" ? "success" : "error");
 }
 
 // 🔸 Verifica se outro usuário já marcou o mesmo instrumento para o dia
@@ -83,7 +84,10 @@ async function verificarConflito(data, descricao, instrumentoSelecionado) {
     const dados = doc.data();
     if (
       dados.diasSelecionados?.some(
-        (d) => d.data === data && d.instrumento === instrumentoSelecionado
+        (d) =>
+          d.data === data &&
+          d.instrumento === instrumentoSelecionado &&
+          d.descricao === descricao
       )
     ) {
       conflito = dados.nome;
@@ -94,7 +98,7 @@ async function verificarConflito(data, descricao, instrumentoSelecionado) {
     exibirToast(`Instrumento já marcado por ${conflito}`);
   } else {
     await salvarEscolha(data, descricao, instrumentoSelecionado);
-    exibirToast("Instrumento salvo com sucesso!", "#27ae60");
+    exibirToast("Obrigado pelo seu Servir !", "#27ae60");
     fecharModal();
   }
 }

@@ -109,7 +109,7 @@ async function carregarDias() {
 //Evento extra
 async function adicionarEvento(event) {
   event.preventDefault();
-  const descricao = document.getElementById("nome-evento")?.value;
+  const nome = document.getElementById("nome-evento")?.value;
   const data = document.getElementById("data-evento")?.value;
 
   if (!nome || !data) {

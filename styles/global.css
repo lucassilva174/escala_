@@ -52,26 +52,6 @@ button:hover {
   background-color: #1765cc;
 }
 
-/* Toast */
-.toast {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background-color: #4caf50;
-  color: white;
-  padding: 12px 20px;
-  border-radius: 8px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-  font-size: 1rem;
-  z-index: 9999;
-  opacity: 0;
-  transition: opacity 0.4s ease-in-out;
-}
-
-.toast.show {
-  opacity: 1;
-}
-
 .perfil-topo {
   display: flex;
   align-items: center;
@@ -159,19 +139,25 @@ button:hover {
 .menu-avatar .logout-link:hover {
   background-color: #fbeaea;
 }
-/*Toast*/
+/* ✅ Toast centralizado e padronizado */
 .toast {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: #6cc27e;
+  background-color: #6cc27e; /* verde padrão de sucesso */
   color: #fff;
-  padding: 16px 24px;
+  padding: 14px 24px;
   border-radius: 8px;
   z-index: 9999;
+  font-size: 1rem;
   font-weight: bold;
-  animation: fadeInOut 3s ease;
+  text-align: center;
+  max-width: 90vw;
+  white-space: nowrap;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  animation: fadeInOut 3s ease forwards;
 }
 
 @keyframes fadeInOut {
@@ -179,10 +165,7 @@ button:hover {
     opacity: 0;
     transform: translate(-50%, -60%);
   }
-  10% {
-    opacity: 1;
-    transform: translate(-50%, -50%);
-  }
+  10%,
   90% {
     opacity: 1;
     transform: translate(-50%, -50%);
@@ -191,4 +174,36 @@ button:hover {
     opacity: 0;
     transform: translate(-50%, -40%);
   }
+}
+
+/*Estilo do calendário*/
+.modal-lista {
+  position: fixed;
+  inset: 0;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+}
+
+.modal-lista .modal-content {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+#listaPessoas {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+}
+
+#listaPessoas li {
+  padding: 6px 0;
+  border-bottom: 1px solid #ddd;
 }

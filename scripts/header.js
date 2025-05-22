@@ -23,8 +23,8 @@ async function criarHeader(nome, fotoURL, isAdmin = false) {
         <ul class="menu-avatar" id="menuAvatar">
           <li><a href="perfil.html">Perfil</a></li>
           <li><a href="dias.html">Escala</a></li>
-          <li><a href="consulta.html">Consulta</a></li>
           <li><label for="fotoInput">Adicionar Imagem</label></li>
+          <li><a href="consulta.html">Consulta</a></li>
           <li><a href="usuarios.html">Usuários</a></li>
           <li id="adminLink">
             <a href="#" ${
