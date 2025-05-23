@@ -79,33 +79,76 @@ async function verificarConflito(data, descricao, instrumentoSelecionado) {
   const snapshot = await getDocs(escalasRef);
 
   let conflito = null;
+  const instrumentosMarcados = [];
 
-  snapshot.forEach((doc) => {
-    const dados = doc.data();
-    if (
-      dados.diasSelecionados?.some(
-        (d) =>
-          d.data === data &&
-          d.instrumento === instrumentoSelecionado &&
-          d.descricao === descricao
-      )
-    ) {
-      conflito = dados.nome;
-    }
+  snapshot.forEach((docSnap) => {
+    const dados = docSnap.data();
+    const dias = dados.diasSelecionados || [];
+
+    dias.forEach((d) => {
+      const mesmaData = d.data === data;
+      const mesmaDescricao = d.descricao === descricao;
+      const mesmoInstrumento =
+        d.instrumento.toLowerCase() === instrumentoSelecionado.toLowerCase();
+
+      if (mesmaData && mesmaDescricao) {
+        if (mesmoInstrumento && dados.uid !== usuarioAtual.uid) {
+          conflito = dados.nome;
+        }
+
+        if (dados.uid === usuarioAtual.uid) {
+          instrumentosMarcados.push(d.instrumento.toLowerCase());
+        }
+      }
+    });
   });
 
   if (conflito) {
     exibirToast(`Instrumento já marcado por ${conflito}`);
-  } else {
-    await salvarEscolha(data, descricao, instrumentoSelecionado);
-    exibirToast("Obrigado pelo seu Servir !", "#27ae60");
-    fecharModal();
-
-    // ⏳ Aguarda 2.5 segundos e atualiza a página
-    setTimeout(() => {
-      location.reload();
-    }, 2000);
+    return;
   }
+
+  const inst = instrumentoSelecionado.toLowerCase();
+  const marcouMinistro = instrumentosMarcados.includes("ministro");
+  const total = instrumentosMarcados.length;
+
+  if (!usuarioAtual.ministro && total >= 1) {
+    exibirToast("Você já marcou um instrumento neste evento.");
+    return;
+  }
+
+  if (usuarioAtual.ministro) {
+    if (total >= 2) {
+      exibirToast("Você já marcou dois instrumentos neste evento.");
+      return;
+    }
+
+    if (total === 1) {
+      if (inst === "ministro" && marcouMinistro) {
+        exibirToast("Você já marcou 'ministro' neste evento.");
+        return;
+      }
+      if (inst !== "ministro" && !marcouMinistro) {
+        exibirToast(
+          "Você só pode marcar outro instrumento se já tiver marcado 'ministro'."
+        );
+        return;
+      }
+    }
+
+    if (total === 1 && instrumentosMarcados.includes(inst)) {
+      exibirToast("Você já marcou esse instrumento neste evento.");
+      return;
+    }
+  }
+
+  await salvarEscolha(data, descricao, instrumentoSelecionado);
+  exibirToast("Obrigado pelo seu Servir !", "#27ae60");
+  fecharModal();
+
+  setTimeout(() => {
+    location.reload();
+  }, 2000);
 }
 
 // 🔸 Salva escolha no banco
