@@ -26,6 +26,11 @@ document
       return;
     }
 
+    // 👉 Verifica se “Ministro” foi selecionado
+    const isMinistro = instrumentos.some(
+      (item) => item.toLowerCase() === "ministro"
+    );
+
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -40,6 +45,7 @@ document
         email,
         instrumentos,
         equipe,
+        ministro: isMinistro, // ✅ grava true se tiver "Ministro"
       });
 
       alert("Cadastro realizado com sucesso!");

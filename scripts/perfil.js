@@ -116,7 +116,12 @@ async function carregarCalendario(uid) {
         noiteEl.innerHTML = "";
 
         // ✅ Agora usa nome do evento + data, mantendo a data correta
-        const descricaoEvento = lista[0]?.descricao || "Evento";
+        // ✅ Remove qualquer texto entre parênteses e espaços extras
+        let descricaoBruta = lista[0]?.descricao || "Evento";
+        const descricaoEvento = descricaoBruta
+          .replace(/\s*\(.*?\)\s*/g, "")
+          .trim();
+
         const [ano, mes, diaNum] = data.split("-");
         titulo.innerHTML = `Evento: <strong>${descricaoEvento}</strong><br>Data: ${diaNum}/${mes}/${ano}`;
 

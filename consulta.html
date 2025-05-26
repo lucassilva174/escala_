@@ -6,26 +6,25 @@
     <title>Consulta da Escala</title>
     <link rel="stylesheet" href="styles/global.css" />
     <link rel="stylesheet" href="styles/consulta.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
   </head>
   <body>
     <!-- Topo com header.js -->
     <main>
       <h2>Consulta da Escala</h2>
 
-      <div style="text-align: right; margin-bottom: 16px">
-        <button id="btnAbrirModal">+ Adicionar Participante</button>
-
-        <button id="btnExportarCSV">Exportar CSV</button>
-
-        <button id="btnExportarPDF" onclick="exportarPDF()">
-          Exportar PDF
+      <div id="botoesAcao" class="botoes-centro">
+        <button id="btnAbrirModal" class="botao-moderno azul">
+          <i class="lucide lucide-plus"></i> Adicionar Participante
         </button>
-
-        <button
-          id="btnLimparDados"
-          style="background-color: #e74c3c; color: white"
-        >
-          Limpar Escala do Mês
+        <button id="btnExportarCSV" class="botao-moderno azul">
+          <i class="lucide lucide-file-spreadsheet"></i> Exportar CSV
+        </button>
+        <button id="btnExportarPDF" class="botao-moderno azul">
+          <i class="lucide lucide-file-text"></i> Exportar PDF
+        </button>
+        <button id="btnLimparDados" class="botao-moderno vermelho">
+          <i class="lucide lucide-trash-2"></i> Limpar Escala do Mês
         </button>
       </div>
 
