@@ -1,9 +1,6 @@
-// ✅ PERFIL.JS COM SUPORTE A TÍTULOS DE MÚSICAS NOS LINKS
+// perfil.js corrigido com ajuste definitivo no clique do calendário
 import { auth, db } from "./firebase-config.js";
-import {
-  onAuthStateChanged,
-  signOut,
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import {
   doc,
   getDoc,
@@ -14,10 +11,9 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let userUid = null;
-let usuarioLogado = {}; // Dados do usuário logado
-let usuarioAtual = {}; // Usado globalmente para permissões
+let usuarioLogado = {};
+let usuarioAtual = {};
 
-// ▶️ Quando o usuário logar
 onAuthStateChanged(auth, async (user) => {
   if (!user) return (window.location.href = "index.html");
   userUid = user.uid;
@@ -28,7 +24,7 @@ onAuthStateChanged(auth, async (user) => {
   if (!userDocSnap.exists()) return alert("Usuário não encontrado.");
 
   usuarioLogado = userDocSnap.data();
-  usuarioAtual = usuarioLogado; // Disponível globalmente
+  usuarioAtual = usuarioLogado;
 
   document.getElementById("perfilContainer").innerHTML = `
     <div class="card"><strong>Email</strong><div>${
@@ -48,7 +44,6 @@ onAuthStateChanged(auth, async (user) => {
   await carregarCalendario(userUid);
 });
 
-// ▶️ Carrega e exibe o calendário
 async function carregarCalendario(uid) {
   const eventos = [];
   const mapaPorData = {};
@@ -103,7 +98,12 @@ async function carregarCalendario(uid) {
       headerToolbar: { left: "prev,next today", center: "title", right: "" },
       events: eventos,
       dateClick: async function (info) {
-        const data = info.dateStr;
+        // ✅ Ajuste de fuso horário: converte corretamente para data local em ISO (yyyy-mm-dd)
+        const localDate = new Date(
+          info.date.getTime() - info.date.getTimezoneOffset() * 60000
+        );
+        const data = localDate.toISOString().split("T")[0];
+
         const lista = mapaPorData[data];
         if (!lista) return;
 
@@ -115,7 +115,10 @@ async function carregarCalendario(uid) {
         manhaEl.innerHTML = "";
         noiteEl.innerHTML = "";
 
-        titulo.textContent = new Date(data).toLocaleDateString("pt-BR");
+        // ✅ Agora usa nome do evento + data, mantendo a data correta
+        const descricaoEvento = lista[0]?.descricao || "Evento";
+        const [ano, mes, diaNum] = data.split("-");
+        titulo.innerHTML = `Evento: <strong>${descricaoEvento}</strong><br>Data: ${diaNum}/${mes}/${ano}`;
 
         lista.forEach((item) => {
           const li = document.createElement("li");
@@ -131,11 +134,10 @@ async function carregarCalendario(uid) {
 
         if (isMinistro || isAdmin) {
           botao.style.display = "inline-block";
-          botao.onclick = () =>
-            abrirModalLinks(data, lista[0]?.descricao || "Evento");
+          botao.onclick = () => abrirModalLinks(data, descricaoEvento);
         } else {
           botao.style.display = "none";
-          abrirModalLinks(data, lista[0]?.descricao || "Evento"); // Exibe apenas leitura
+          abrirModalLinks(data, descricaoEvento);
         }
 
         container.style.display = "flex";
@@ -145,6 +147,8 @@ async function carregarCalendario(uid) {
 
   calendar.render();
 }
+
+// O restante do código (abrirModalLinks, carregarLinksSalvos, etc.) permanece o mesmo
 
 // ▶️ Modal para adicionar/exibir links de músicas
 function abrirModalLinks(data, descricao) {

@@ -1,4 +1,4 @@
-// dias.js atualizado com seleção de instrumento e destaque de eventos extras
+// dias.js corrigido — garante consistência de datas e evita offset indesejado
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getAuth,
@@ -11,8 +11,6 @@ import {
   setDoc,
   getDocs,
   collection,
-  query,
-  where,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import { firebaseConfig } from "./firebase-config.js";
@@ -24,7 +22,6 @@ const db = getFirestore(app);
 
 let usuarioAtual = {};
 
-// Cria o modal flutuante
 function criarModal() {
   const modal = document.createElement("div");
   modal.id = "modalInstrumento";
@@ -37,10 +34,9 @@ function criarModal() {
     </div>
   `;
   document.body.appendChild(modal);
-
   document
     .getElementById("btnCancelarModal")
-    .addEventListener("click", () => fecharModal());
+    .addEventListener("click", fecharModal);
 }
 
 function abrirModal(instrumentos, data, descricao) {
@@ -61,93 +57,118 @@ function abrirModal(instrumentos, data, descricao) {
 function fecharModal() {
   document.getElementById("modalInstrumento").style.display = "none";
 }
-//Cor do toast
+
 function exibirToast(msg, cor = "#e74c3c") {
   const toast = document.createElement("div");
   toast.className = "toast show";
   toast.style.background = cor;
   toast.textContent = msg;
   document.body.appendChild(toast);
-
   setTimeout(() => toast.remove(), 3000);
-  toast.classList.add(cor === "#27ae60" ? "success" : "error");
 }
 
-// 🔸 Verifica se outro usuário já marcou o mesmo instrumento para o dia
 async function verificarConflito(data, descricao, instrumentoSelecionado) {
   const escalasRef = collection(db, "escalas");
   const snapshot = await getDocs(escalasRef);
-
   let conflito = null;
+  const instrumentosMarcados = [];
 
-  snapshot.forEach((doc) => {
-    const dados = doc.data();
-    if (
-      dados.diasSelecionados?.some(
-        (d) =>
-          d.data === data &&
-          d.instrumento === instrumentoSelecionado &&
-          d.descricao === descricao
-      )
-    ) {
-      conflito = dados.nome;
-    }
+  snapshot.forEach((docSnap) => {
+    const dados = docSnap.data();
+    const dias = dados.diasSelecionados || [];
+    dias.forEach((d) => {
+      const mesmaData = d.data === data;
+      const mesmaDescricao = d.descricao === descricao;
+      const mesmoInstrumento = d.instrumento === instrumentoSelecionado;
+
+      if (
+        mesmaData &&
+        mesmaDescricao &&
+        mesmoInstrumento &&
+        dados.uid !== usuarioAtual.uid
+      ) {
+        conflito = dados.nome;
+      }
+
+      if (dados.uid === usuarioAtual.uid && mesmaData && mesmaDescricao) {
+        instrumentosMarcados.push(d.instrumento);
+      }
+    });
   });
 
   if (conflito) {
     exibirToast(`Instrumento já marcado por ${conflito}`);
-  } else {
-    await salvarEscolha(data, descricao, instrumentoSelecionado);
-    exibirToast("Obrigado pelo seu Servir !", "#27ae60");
-    fecharModal();
-
-    // ⏳ Aguarda 2.5 segundos e atualiza a página
-    setTimeout(() => {
-      location.reload();
-    }, 2000);
+    return;
   }
+
+  const inst = instrumentoSelecionado.toLowerCase();
+  const marcouMinistro = instrumentosMarcados.includes("ministro");
+  const total = instrumentosMarcados.length;
+
+  if (!usuarioAtual.ministro && total >= 1) {
+    exibirToast("Você já marcou um instrumento neste evento.");
+    return;
+  }
+
+  if (usuarioAtual.ministro) {
+    if (total >= 2) {
+      exibirToast("Você já marcou dois instrumentos neste evento.");
+      return;
+    }
+
+    if (total === 1 && instrumentosMarcados.includes(inst)) {
+      exibirToast("Você já marcou esse instrumento neste evento.");
+      return;
+    }
+
+    if (total === 1 && inst !== "ministro" && !marcouMinistro) {
+      exibirToast(
+        "Você só pode marcar outro instrumento se já tiver marcado 'ministro'."
+      );
+      return;
+    }
+  }
+
+  await salvarEscolha(data, descricao, instrumentoSelecionado);
+  exibirToast("Obrigado pelo seu Servir !", "#27ae60");
+  fecharModal();
+  setTimeout(() => location.reload(), 2000);
 }
 
-// 🔸 Salva escolha no banco
 async function salvarEscolha(data, descricao, instrumento) {
   const { uid, nome, equipe, ministro } = usuarioAtual;
-
-  // ✅ Confirma se o uid é do usuário autenticado
   if (!auth.currentUser || uid !== auth.currentUser.uid) {
     console.error("Tentativa de gravar com UID inválido.");
-    exibirToast("Erro de autenticação ao salvar.", "#e74c3c");
+    exibirToast("Erro de autenticação ao salvar.");
     return;
   }
 
   const ref = doc(db, "escalas", uid);
   const snapshot = await getDoc(ref);
-
-  let diasSelecionados = [];
-  if (snapshot.exists()) {
-    diasSelecionados = snapshot.data().diasSelecionados || [];
-  }
-
-  diasSelecionados.push({ data, descricao, instrumento });
+  const diasSelecionados = snapshot.exists()
+    ? snapshot.data().diasSelecionados || []
+    : [];
+  const dataISO =
+    typeof data === "string"
+      ? data
+      : new Date(data).toISOString().split("T")[0];
+  diasSelecionados.push({ data: dataISO, descricao, instrumento });
 
   await setDoc(ref, {
     uid,
     nome,
     equipe,
     instrumento,
-    ministro, //Faltou esse
+    ministro,
     diasSelecionados,
   });
 }
 
-// 🔸 Quando a página carregar
 document.addEventListener("DOMContentLoaded", () => {
   criarModal();
 
   onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      window.location.href = "index.html";
-      return;
-    }
+    if (!user) return (window.location.href = "index.html");
 
     const userSnap = await getDoc(doc(db, "usuarios", user.uid));
     if (!userSnap.exists()) return;
@@ -161,47 +182,30 @@ document.addEventListener("DOMContentLoaded", () => {
       ministro: dados.ministro || false,
     };
 
-    // 🔍 Buscar os dias já marcados pelo usuário atual
     const escalaRef = doc(db, "escalas", user.uid);
     const escalaSnap = await getDoc(escalaRef);
     const diasMarcados = new Set();
-
     if (escalaSnap.exists()) {
       const dias = escalaSnap.data().diasSelecionados || [];
-      dias.forEach((d) => {
-        diasMarcados.add(`${d.data}|${d.descricao}`);
-      });
+      dias.forEach((d) => diasMarcados.add(`${d.data}|${d.descricao}`));
     }
 
     const diasPadrao = await obterDiasDefinidosPeloAdmin();
-
-    // 🔸 Buscar eventos extras
     const extrasSnap = await getDocs(collection(db, "eventosExtras"));
     const eventosExtras = extrasSnap.docs.map((doc) => ({
       ...doc.data(),
-      extra: true, // identificador visual
+      extra: true,
     }));
-
-    // 🔸 Juntar todos os dias (padrao + extras)
     const dias = [...diasPadrao, ...eventosExtras];
-
-    // ✅ Ordena os dias cronologicamente (por data ISO)
     dias.sort((a, b) => a.data.localeCompare(b.data));
 
     const diasContainer = document.getElementById("dias-container");
-    diasContainer.innerHTML = "";
+    diasContainer.innerHTML =
+      dias.length === 0 ? "<p>Nenhum dia definido pelo administrador.</p>" : "";
 
-    if (dias.length === 0) {
-      diasContainer.innerHTML =
-        "<p>Nenhum dia definido pelo administrador.</p>";
-      return;
-    }
-
-    // 🔸 Exibir dias com destaque para eventos extras
     dias.forEach((dia) => {
       const label = document.createElement("label");
       label.classList.add("checkbox-dia");
-
       const chave = `${dia.data}|${dia.descricao || dia.nome || "Evento"}`;
       const jaMarcado = diasMarcados.has(chave);
 
