@@ -123,7 +123,8 @@ async function carregarCalendario(uid) {
           .trim();
 
         const [ano, mes, diaNum] = data.split("-");
-        titulo.innerHTML = `Evento: <strong>${descricaoEvento}</strong><br>Data: ${diaNum}/${mes}/${ano}`;
+        titulo.innerHTML = `<strong>${descricaoEvento}</strong><br>${diaNum}/${mes}/${ano}`;
+        //titulo.innerHTML = `Evento: <strong>${descricaoEvento}</strong><br>Data: ${diaNum}/${mes}/${ano}`;
 
         lista.forEach((item) => {
           const li = document.createElement("li");
