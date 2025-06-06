@@ -395,3 +395,80 @@ document
       alert("Erro ao limpar dados. Veja o console.");
     }
   });
+
+// ✅ Visualização PDF modal
+window.visualizarEscala = async function () {
+  const escalasRef = collection(db, "escalas");
+  const snapshot = await getDocs(escalasRef);
+  const eventosMap = new Map();
+
+  snapshot.forEach((docSnap) => {
+    const dados = docSnap.data();
+    const nome = dados.nome || "Usuário";
+    (dados.diasSelecionados || []).forEach((dia) => {
+      const chave = `${dia.data} - ${dia.descricao || ""}`;
+      if (!eventosMap.has(chave)) eventosMap.set(chave, []);
+      eventosMap.get(chave).push(`${nome} - ${dia.instrumento}`);
+    });
+  });
+
+  const extrasRef = collection(db, "grupoExtra");
+  const extrasSnap = await getDocs(extrasRef);
+  extrasSnap.forEach((docSnap) => {
+    const { data, descricao, nome, instrumento } = docSnap.data();
+    const chave = `${data} - ${descricao || ""}`;
+    if (!eventosMap.has(chave)) eventosMap.set(chave, []);
+    eventosMap.get(chave).push(`${nome} - ${instrumento}`);
+  });
+
+  const modal = document.createElement("div");
+  modal.className =
+    "fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center";
+  const content = document.createElement("div");
+  content.className =
+    "bg-white max-h-[90vh] w-[90vw] overflow-y-auto p-6 rounded shadow text-sm";
+
+  const titulo = document.createElement("h3");
+  titulo.textContent = "Pré-visualização da Escala";
+  titulo.className = "text-xl font-bold mb-4 text-center";
+
+  const btnFechar = document.createElement("button");
+  btnFechar.textContent = "Fechar";
+  btnFechar.className =
+    "block mx-auto mt-6 bg-red-600 text-white px-4 py-2 rounded";
+  btnFechar.onclick = () => modal.remove();
+
+  content.appendChild(titulo);
+
+  [...eventosMap.entries()].sort().forEach(([chave, lista]) => {
+    const bloco = document.createElement("div");
+    bloco.className = "mb-4";
+    const tituloData = document.createElement("h4");
+    tituloData.textContent = chave;
+    tituloData.className = "font-semibold text-gray-800";
+    bloco.appendChild(tituloData);
+
+    lista.forEach((p) => {
+      const item = document.createElement("p");
+      item.textContent = `- ${p}`;
+      bloco.appendChild(item);
+    });
+
+    content.appendChild(bloco);
+  });
+
+  content.appendChild(btnFechar);
+  modal.appendChild(content);
+  document.body.appendChild(modal);
+};
+
+// ✅ Ligações dos botões
+const abrirModalBtn = document.getElementById("btnAbrirModal");
+if (abrirModalBtn)
+  abrirModalBtn.addEventListener(
+    "click",
+    () => (document.getElementById("modalParticipante").style.display = "flex")
+  );
+
+const visualizarBtn = document.getElementById("btnVisualizarPDF");
+if (visualizarBtn) visualizarBtn.addEventListener("click", visualizarEscala);

@@ -4,95 +4,113 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Perfil do Usuário</title>
-    <link rel="stylesheet" href="styles/global.css" />
-    <link rel="stylesheet" href="styles/perfil.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
     <link
       href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css"
       rel="stylesheet"
     />
+    <style>
+      /*.fc-daygrid-day {
+        cursor: pointer;
+      }*/
+
+      .fc-daygrid-day-frame {
+        min-height: 60px; /* aumenta área útil */
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+      }
+
+      @media (max-width: 640px) {
+        .fc-daygrid-day-frame {
+          min-height: 80px;
+        }
+      }
+    </style>
   </head>
-  <body>
-    <main>
-      <h2>Seu Perfil</h2>
+  <body class="bg-gray-50 text-gray-800">
+    <!-- Header será injetado dinamicamente -->
+    <header id="header-root" class="w-full"></header>
 
-      <div id="perfilContainer" class="perfil-container">
-        <!-- Cards de dados do usuário -->
-      </div>
-
-      <div id="calendarioContainer" class="calendario-container">
-        <!-- Calendário será renderizado aqui -->
-      </div>
+    <main class="max-w-4xl mx-auto mt-8 px-4">
+      <h2 class="text-2xl font-bold text-center mb-4">Seu Perfil</h2>
+      <div
+        id="perfilContainer"
+        class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
+      ></div>
+      <div
+        id="calendarioContainer"
+        class="bg-white rounded-lg shadow p-4"
+      ></div>
     </main>
-    <!-- Modal de informações ao clicar no dia -->
-    <div id="modalLista" class="modal">
-      <div class="modal-content">
-        <h3><!--Participantes do dia--><span id="modalData"></span></h3>
-        <div class="modal-columns">
+
+    <!-- Modal Participantes -->
+    <div
+      id="modalLista"
+      class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50"
+    >
+      <div class="bg-white p-6 rounded-lg w-full max-w-md">
+        <h3 class="text-lg font-semibold text-center mb-4">
+          <span id="modalData"></span>
+        </h3>
+        <div class="grid grid-cols-2 gap-4 mb-4">
           <div>
-            <h4 id="tituloManha">Culto 1</h4>
-            <ul id="listaManha"></ul>
+            <h4 class="font-semibold text-blue-600 mb-2">Culto 1</h4>
+            <ul id="listaManha" class="space-y-1 text-sm"></ul>
           </div>
           <div>
-            <h4 id="tituloNoite">Culto 2</h4>
-            <ul id="listaNoite"></ul>
+            <h4 class="font-semibold text-blue-600 mb-2">Culto 2</h4>
+            <ul id="listaNoite" class="space-y-1 text-sm"></ul>
           </div>
         </div>
-        <button
-          onclick="document.getElementById('modalLista').style.display='none'"
+        <div class="flex flex-col gap-2">
+          <button
+            onclick="document.getElementById('modalLista').style.display='none'"
+            class="bg-gray-500 hover:bg-gray-600 text-white py-2 rounded"
+          >
+            Fechar
+          </button>
+          <button
+            id="btnAddLink"
+            class="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded hidden"
+          >
+            Link Músicas
+          </button>
+        </div>
+
+        <!-- Modal de Links -->
+        <div
+          id="modalLinks"
+          class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50"
         >
-          Fechar
-        </button>
-        <button id="btnAddLink" style="margin: 8px auto; display: none">
-          Link Musicas
-        </button>
-        <!-- Modal de Links do Evento -->
-        <div id="modalLinks" class="modal" style="display: none">
-          <div class="modal-content" style="max-width: 480px; padding: 20px">
-            <h3 style="text-align: center; margin-bottom: 10px">
+          <div
+            class="bg-white w-full max-w-lg p-6 rounded-lg shadow-lg text-sm"
+          >
+            <h3 class="text-center text-lg font-semibold mb-4">
               Links de Músicas
             </h3>
-
-            <!-- Formulário apenas para ministros/admins -->
-            <form id="formLinks" style="display: none; margin-bottom: 10px">
+            <form id="formLinks" class="mb-4 hidden">
               <input type="hidden" id="dataModalLinks" />
               <input type="hidden" id="descricaoModalLinks" />
               <input
                 type="url"
                 id="novoLink"
                 placeholder="https://youtube.com..."
-                style="width: 100%; padding: 8px; margin-bottom: 8px"
                 required
+                class="w-full border px-3 py-2 rounded mb-2"
               />
               <button
                 type="submit"
-                style="
-                  width: 100%;
-                  background-color: #3498db;
-                  color: white;
-                  border: none;
-                  padding: 10px;
-                  border-radius: 4px;
-                "
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
               >
                 Adicionar
               </button>
             </form>
-
-            <!-- Lista de links visível para todos -->
-            <ul
-              id="listaLinks"
-              style="margin-top: 10px; padding-left: 0; list-style: none"
-            ></ul>
-
-            <div style="text-align: center; margin-top: 16px">
+            <ul id="listaLinks" class="space-y-2"></ul>
+            <div class="text-center mt-4">
               <button
                 onclick="document.getElementById('modalLinks').style.display='none'"
-                style="
-                  padding: 8px 16px;
-                  background-color: #1a73e8;
-                  border: none;
-                  border-radius: 4px;
-                "
+                class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded"
               >
                 Fechar
               </button>

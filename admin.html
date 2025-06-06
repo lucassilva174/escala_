@@ -4,55 +4,146 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Painel do Administrador</title>
-    <link rel="stylesheet" href="styles/admin.css" />
-    <link rel="stylesheet" href="styles/global.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
   </head>
 
-  <body>
-    <div class="container">
-      <h2>Painel do Administrador</h2>
+  <body class="bg-gray-100 min-h-screen font-sans">
+    <div class="container mx-auto px-4 py-8">
+      <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">
+        Painel do Administrador
+      </h2>
 
-      <div id="adminContent" style="display: none">
-        <h3>Adicionar Dias Disponíveis</h3>
-        <form id="form-dias">
-          <label>Data:</label>
-          <input type="date" id="data-disponivel" required />
+      <div id="adminContent" class="space-y-10 hidden">
+        <!-- Adicionar Dias -->
+        <div class="bg-white rounded-xl shadow p-6">
+          <h3 class="text-xl font-semibold mb-4">Adicionar Dias Disponíveis</h3>
+          <form id="form-dias" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700"
+                >Data:</label
+              >
+              <input
+                type="date"
+                id="data-disponivel"
+                required
+                class="w-full mt-1 rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
 
-          <label>Descrição do Evento:</label>
-          <input type="text" id="descricao-evento" required />
+            <div>
+              <label class="block text-sm font-medium text-gray-700"
+                >Descrição do Evento:</label
+              >
+              <input
+                type="text"
+                id="descricao-evento"
+                required
+                class="w-full mt-1 rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
 
-          <button type="submit">Adicionar Dia</button>
-        </form>
+            <button
+              type="submit"
+              class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg"
+            >
+              Adicionar Dia
+            </button>
+          </form>
+        </div>
 
-        <h3>Dias Disponíveis</h3>
-        <ul id="lista-dias"></ul>
+        <!-- Lista de Dias -->
+        <div class="bg-white rounded-xl shadow p-6">
+          <h3 class="text-xl font-semibold mb-4">Dias Disponíveis</h3>
+          <ul id="lista-dias" class="list-disc pl-6 text-gray-700"></ul>
+        </div>
 
-        <h3>Adicionar Evento Extra</h3>
-        <form id="form-evento">
-          <label>Nome do Evento</label>
-          <input type="text" id="nome-evento" required />
+        <!-- Adicionar Evento Extra -->
+        <div class="bg-white rounded-xl shadow p-6">
+          <h3 class="text-xl font-semibold mb-4">Adicionar Evento Extra</h3>
+          <form id="form-evento" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700"
+                >Nome do Evento</label
+              >
+              <input
+                type="text"
+                id="nome-evento"
+                required
+                class="w-full mt-1 rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
 
-          <label>Data do Evento</label>
-          <input type="date" id="data-evento" required />
+            <div>
+              <label class="block text-sm font-medium text-gray-700"
+                >Data do Evento</label
+              >
+              <input
+                type="date"
+                id="data-evento"
+                required
+                class="w-full mt-1 rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
 
-          <button type="submit">Adicionar Evento</button>
-        </form>
+            <button
+              type="submit"
+              class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg"
+            >
+              Adicionar Evento
+            </button>
+          </form>
+        </div>
 
-        <h3>Eventos Extras</h3>
-        <ul id="lista-eventos"></ul>
-        <a href="usuarios.html">Gerenciar Usuários</a>
-      </div>
-    </div>
-    <div id="modalConfirmacao" class="modal" style="display: none">
-      <div class="modal-content">
-        <p id="modalMensagem">Tem certeza que deseja excluir?</p>
-        <div class="modal-botoes">
-          <button id="btnCancelarModal">Cancelar</button>
-          <button id="btnConfirmarModal">Excluir</button>
+        <!-- Lista de Eventos -->
+        <div class="bg-white rounded-xl shadow p-6">
+          <h3 class="text-xl font-semibold mb-4">Eventos Extras</h3>
+          <ul id="lista-eventos" class="list-disc pl-6 text-gray-700"></ul>
+        </div>
+
+        <!-- Link para usuários -->
+        <div class="text-right">
+          <a
+            href="usuarios.html"
+            class="text-blue-600 hover:text-blue-800 font-medium underline"
+            >Gerenciar Usuários</a
+          >
         </div>
       </div>
     </div>
-    <div id="toast" class="toast"></div>
+
+    <!-- Modal de Confirmação -->
+    <div
+      id="modalConfirmacao"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden"
+    >
+      <div class="bg-white rounded-lg p-6 shadow-xl w-80 text-center">
+        <p id="modalMensagem" class="text-lg text-gray-800 mb-6">
+          Tem certeza que deseja excluir?
+        </p>
+        <div class="flex justify-center gap-4">
+          <button
+            id="btnCancelarModal"
+            class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded"
+          >
+            Cancelar
+          </button>
+          <button
+            id="btnConfirmarModal"
+            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+          >
+            Excluir
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div
+      id="toast"
+      class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-green-600 text-white px-6 py-3 rounded shadow-lg text-center z-50 opacity-0 invisible transition-opacity duration-300"
+    ></div>
+
+    <!-- Scripts -->
     <script type="module" src="scripts/header.js"></script>
     <script type="module" src="scripts/admin.js"></script>
   </body>

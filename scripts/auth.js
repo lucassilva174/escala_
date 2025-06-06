@@ -1,6 +1,5 @@
 // auth.js
 import { auth, db } from "./firebase-config.js";
-
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -18,13 +17,24 @@ import {
   getDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-//Função para verificar Admin para ser exportada no dias.js
-// auth.js
+function mostrarToast(mensagem, cor = "green") {
+  const toast = document.getElementById("toast");
+  if (!toast) return;
+
+  toast.textContent = mensagem;
+  toast.classList.remove("hidden");
+  toast.classList.remove("bg-green-600", "bg-red-600", "bg-blue-600");
+
+  toast.classList.add(`bg-${cor}-600`);
+
+  setTimeout(() => {
+    toast.classList.add("hidden");
+  }, 3000);
+}
 
 // 🔹 Função de Login com verificação de Admin
 async function login(email, senha) {
   try {
-    console.log("Tentando logar com:", email);
     const userCredential = await signInWithEmailAndPassword(auth, email, senha);
     const user = userCredential.user;
 
@@ -34,34 +44,33 @@ async function login(email, senha) {
     if (userSnap.exists()) {
       const dados = userSnap.data();
 
+      if (dados.ativo === false) {
+        mostrarToast(
+          "Seu acesso foi desativado. Fale com o administrador.",
+          "red"
+        );
+        setTimeout(() => auth.signOut(), 3000);
+        return; // ❗ Impede login e redirecionamento
+      }
+
       if (dados.admin === true) {
-        // ADMIN - mostra modal e redireciona
-        const modal = document.getElementById("adminModal");
-        const closeBtn = document.querySelector(".close");
-
-        modal.style.display = "block";
-
-        closeBtn.onclick = () => (modal.style.display = "none");
-        window.onclick = (event) => {
-          if (event.target == modal) modal.style.display = "none";
-        };
-
-        // ✅ NUNCA mostra o toast normal para admin
-        // Redireciona para admin após 2.5s
+        mostrarToast("Login de administrador realizado com sucesso!", "blue");
         setTimeout(() => {
           window.location.href = "admin.html";
-        }, 2500);
+        }, 2000);
       } else {
-        // USUÁRIO COMUM
-        localStorage.setItem("loginSucesso", "true"); // <-- Apenas aqui!
-        window.location.href = "perfil.html";
+        mostrarToast("Login realizado com sucesso!", "green");
+        localStorage.setItem("loginSucesso", "true");
+        setTimeout(() => {
+          window.location.href = "perfil.html";
+        }, 2000);
       }
     } else {
-      alert("Usuário não encontrado no banco de dados.");
+      mostrarToast("Usuário não encontrado no banco de dados.", "red");
     }
   } catch (error) {
     console.error("Erro ao fazer login:", error);
-    alert("Erro ao fazer login: " + error.message);
+    mostrarToast("Erro ao fazer login: " + error.message, "red");
   }
 }
 
@@ -82,7 +91,6 @@ async function cadastrarUsuario(
     );
     const userId = userCredential.user.uid;
 
-    // Salvar informações no Firestore
     await setDoc(doc(db, "usuarios", userId), {
       nome,
       telefone,
@@ -92,14 +100,14 @@ async function cadastrarUsuario(
       role: "usuario",
     });
 
-    alert("Cadastro realizado com sucesso!");
-    window.location.href = "index.html"; // Redireciona para login
+    mostrarToast("Cadastro realizado com sucesso!");
+    window.location.href = "index.html";
   } catch (error) {
-    alert("Erro ao cadastrar: " + error.message);
+    mostrarToast("Erro ao cadastrar: " + error.message);
   }
 }
 
-// 🔹 Função para listar usuários (para o admin)
+// 🔹 Lista todos os usuários
 async function listarUsuarios() {
   try {
     const usuariosRef = collection(db, "usuarios");
@@ -111,33 +119,33 @@ async function listarUsuarios() {
   }
 }
 
-// 🔹 Função para redefinir senha de um usuário
+// 🔹 Redefinir senha como admin
 async function redefinirSenhaAdmin(userId, novaSenha) {
   try {
     const userRef = doc(db, "usuarios", userId);
-    await updateDoc(userRef, { senhaTemporaria: novaSenha }); // O usuário deverá redefinir no login
+    await updateDoc(userRef, { senhaTemporaria: novaSenha });
 
-    alert("Senha redefinida com sucesso!");
+    mostrarToast("Senha redefinida com sucesso!");
   } catch (error) {
-    alert("Erro ao redefinir senha: " + error.message);
+    mostrarToast("Erro ao redefinir senha: " + error.message);
   }
 }
 
-// 🔹 Função para logout
-
+// 🔹 Logout
 function logout() {
   signOut(auth)
     .then(() => {
       window.location.href = "index.html";
     })
     .catch((error) => {
-      alert("Erro ao sair: " + error.message);
+      mostrarToast("Erro ao sair: " + error.message);
     });
 }
 
-// Exporta as funções para serem usadas em outros arquivos
+// Exportações
 export { login, cadastrarUsuario, listarUsuarios, redefinirSenhaAdmin, logout };
 
+// Tornando disponíveis globalmente, se necessário
 window.login = login;
 window.cadastrarUsuario = cadastrarUsuario;
 window.listarUsuarios = listarUsuarios;

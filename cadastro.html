@@ -4,36 +4,60 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cadastro - Escala de Louvor</title>
-    <link rel="stylesheet" href="styles/cadastro.css" />
-    <link rel="stylesheet" href="styles/global.css" />
-    <style>
-      .checkbox-lista {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 10px;
-        margin-top: 10px;
-      }
-
-      .checkbox-lista label {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 0.95rem;
-      }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
   </head>
-  <body>
-    <div class="container">
-      <h2>Cadastro</h2>
-      <form id="cadastroForm">
-        <input type="text" id="nome" placeholder="Nome" required />
-        <input type="tel" id="telefone" placeholder="Telefone" required />
-        <input type="text" id="equipe" placeholder="Equipe" required />
-        <input type="email" id="email" placeholder="E-mail" required />
-        <input type="password" id="senha" placeholder="Senha" required />
+  <body
+    class="min-h-screen bg-cover bg-center bg-gray-100 flex items-center justify-center p-4"
+    style="background-image: url('img/fundo.png')"
+  >
+    <div
+      class="bg-white bg-opacity-40 backdrop-blur-md rounded-2xl shadow-xl w-full max-w-xl p-8"
+    >
+      <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">
+        Cadastro
+      </h2>
+      <form id="cadastroForm" class="space-y-4">
+        <input
+          type="text"
+          id="nome"
+          placeholder="Nome"
+          required
+          class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <input
+          type="tel"
+          id="telefone"
+          placeholder="Telefone"
+          required
+          class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <input
+          type="text"
+          id="equipe"
+          placeholder="Equipe"
+          required
+          class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <input
+          type="email"
+          id="email"
+          placeholder="E-mail"
+          required
+          class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <input
+          type="password"
+          id="senha"
+          placeholder="Senha"
+          required
+          class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
 
-        <label>Instrumento(s):</label>
+        <label class="block font-medium mt-4 text-gray-700"
+          >Instrumento(s):</label
+        >
 
+<<<<<<< HEAD
         <div class="instrumentos-box">
           <label class="instrumento-item"
             ><input type="checkbox" value="Guitarra" /> Guitarra</label
@@ -66,11 +90,112 @@
             ><input type="checkbox" value="Ministro" /> Ministro (Voz
             Principal)</label
           >
+=======
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-2">
+          <label class="cursor-pointer group">
+            <input type="checkbox" value="Guitarra" class="peer hidden" />
+            <div
+              class="w-full p-3 border rounded-lg text-center transition-all duration-200 peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 group-hover:shadow-md"
+            >
+              🎸 Guitarra
+            </div>
+          </label>
+
+          <label class="cursor-pointer group">
+            <input type="checkbox" value="Baixo" class="peer hidden" />
+            <div
+              class="w-full p-3 border rounded-lg text-center transition-all duration-200 peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 group-hover:shadow-md"
+            >
+              🎵 Baixo
+            </div>
+          </label>
+
+          <label class="cursor-pointer group">
+            <input type="checkbox" value="Teclado" class="peer hidden" />
+            <div
+              class="w-full p-3 border rounded-lg text-center transition-all duration-200 peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 group-hover:shadow-md"
+            >
+              🎹 Teclado
+            </div>
+          </label>
+
+          <label class="cursor-pointer group">
+            <input type="checkbox" value="Bateria" class="peer hidden" />
+            <div
+              class="w-full p-3 border rounded-lg text-center transition-all duration-200 peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 group-hover:shadow-md"
+            >
+              🥁 Bateria
+            </div>
+          </label>
+
+          <label class="cursor-pointer group">
+            <input type="checkbox" value="Violão" class="peer hidden" />
+            <div
+              class="w-full p-3 border rounded-lg text-center transition-all duration-200 peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 group-hover:shadow-md"
+            >
+              🎶 Violão
+            </div>
+          </label>
+
+          <label class="cursor-pointer group">
+            <input type="checkbox" value="Violino" class="peer hidden" />
+            <div
+              class="w-full p-3 border rounded-lg text-center transition-all duration-200 peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 group-hover:shadow-md"
+            >
+              🎻 Violino
+            </div>
+          </label>
+
+          <label class="cursor-pointer group">
+            <input type="checkbox" value="Cajon" class="peer hidden" />
+            <div
+              class="w-full p-3 border rounded-lg text-center transition-all duration-200 peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 group-hover:shadow-md"
+            >
+              🪘 Cajon
+            </div>
+          </label>
+
+          <label class="cursor-pointer group">
+            <input type="checkbox" value="Backing-1" class="peer hidden" />
+            <div
+              class="w-full p-3 border rounded-lg text-center transition-all duration-200 peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 group-hover:shadow-md"
+            >
+              🎤 Backing-1
+            </div>
+          </label>
+
+          <label class="cursor-pointer group">
+            <input type="checkbox" value="Backing-2" class="peer hidden" />
+            <div
+              class="w-full p-3 border rounded-lg text-center transition-all duration-200 peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 group-hover:shadow-md"
+            >
+              🎤 Backing-2
+            </div>
+          </label>
+
+          <label class="cursor-pointer group col-span-2">
+            <input type="checkbox" value="Ministro" class="peer hidden" />
+            <div
+              class="w-full p-3 border rounded-lg text-center transition-all duration-200 peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 group-hover:shadow-md"
+            >
+              🎙️ Ministro (Voz Principal)
+            </div>
+          </label>
+>>>>>>> c1e92ce (versão 2.0)
         </div>
 
-        <button type="submit">Cadastrar</button>
+        <button
+          type="submit"
+          class="w-full bg-blue-600 text-white py-3 mt-4 rounded-lg hover:bg-blue-700 transition"
+        >
+          Cadastrar
+        </button>
       </form>
     </div>
+    <div
+      id="toast"
+      class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-6 py-3 rounded-lg text-white font-medium shadow-lg text-center hidden z-50"
+    ></div>
 
     <script type="module" src="scripts/cadastro.js"></script>
   </body>

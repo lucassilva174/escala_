@@ -4,43 +4,86 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gerenciar Usuários</title>
-    <link rel="stylesheet" href="styles/usuarios.css" />
-    <link rel="stylesheet" href="styles/global.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
   </head>
-  <body>
-    <div class="container">
-      <h2>Lista de Usuários</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>Email</th>
-            <th>Telefone</th>
-            <th>Instrumentos</th>
-            <th>Equipe</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody id="usuariosTabela">
-          <!-- Conteúdo gerado pelo JavaScript -->
-        </tbody>
-      </table>
-    </div>
+  <body
+    class="min-h-screen bg-cover bg-center bg-no-repeat p-4 text-gray-800"
+    style="background-image: url('img/fundo.png')"
+  >
+    <header id="header-root" class="mb-6"></header>
+
+    <main
+      class="max-w-3xl mx-auto bg-white/70 backdrop-blur-md rounded-xl p-6 shadow-xl"
+    >
+      <h2 class="text-2xl font-bold text-center mb-6">Lista de Usuários</h2>
+      <div id="usuariosTabela" class="space-y-4"></div>
+    </main>
 
     <!-- 🔽 MODAIS AQUI 🔽 -->
-
-    <!-- Modal Confirmar Exclusão -->
-    <div class="modal-overlay" id="modalExcluir">
-      <div class="modal">
-        <h3>Tem certeza que deseja excluir este usuário?</h3>
-        <div class="modal-buttons">
-          <button id="confirmarExclusaoBtn">Sim</button>
-          <button onclick="fecharModal('modalExcluir')">Cancelar</button>
+    <div
+      class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50"
+      id="modalExcluir"
+    >
+      <div
+        class="bg-white p-6 rounded-xl shadow-lg max-w-sm w-full text-center"
+      >
+        <h3 class="text-lg font-semibold mb-4">
+          Tem certeza que deseja excluir este usuário?
+        </h3>
+        <div class="flex gap-4 justify-center">
+          <button
+            id="confirmarExclusaoBtn"
+            class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+          >
+            Sim
+          </button>
+          <button
+            onclick="fecharModal('modalExcluir')"
+            class="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400"
+          >
+            Cancelar
+          </button>
         </div>
       </div>
     </div>
+    <div
+      id="toast"
+      class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 hidden px-6 py-4 rounded-lg shadow-lg text-white z-50 flex items-center space-x-3 animate-fade"
+    >
+      <svg
+        id="toastIcon"
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-6 w-6 flex-shrink-0"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d=""
+        />
+      </svg>
+      <span id="toastMsg" class="font-medium text-sm">Mensagem</span>
+    </div>
 
-    <!-- Script -->
+    <style>
+      @keyframes fade {
+        from {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      .animate-fade {
+        animation: fade 0.3s ease-out;
+      }
+    </style>
+
     <script type="module" src="scripts/usuarios.js"></script>
     <script type="module" src="scripts/header.js"></script>
   </body>
