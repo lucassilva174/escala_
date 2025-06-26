@@ -254,7 +254,7 @@ async function salvarEscolha(data, descricao, instrumento) {
   // Valida se o usuário continua autenticado
   if (!auth.currentUser || uid !== auth.currentUser.uid) {
     console.error("Tentativa de gravar com UID inválido.");
-    exibirToast("Erro de autenticação ao salvar.");
+    exibirToast("Erro de autenticação ao salvar.", "error");
     return;
   }
 

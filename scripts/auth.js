@@ -53,18 +53,22 @@ async function login(email, senha) {
         return; // ❗ Impede login e redirecionamento
       }
 
-      if (dados.admin === true) {
-        mostrarToast("Login de administrador realizado com sucesso!", "blue");
-        setTimeout(() => {
-          window.location.href = "admin.html";
-        }, 2000);
-      } else {
-        mostrarToast("Login realizado com sucesso!", "green");
-        localStorage.setItem("loginSucesso", "true");
-        setTimeout(() => {
-          window.location.href = "perfil.html";
-        }, 2000);
-      }
+      // ✅ Exibe toast diferenciado para admin ou usuário comum
+      mostrarToast(
+        dados.admin === true
+          ? "Login de administrador realizado com sucesso!"
+          : "Login realizado com sucesso!",
+        dados.admin === true ? "blue" : "green"
+      );
+
+      // ✅ Armazena permissões e status no localStorage
+      localStorage.setItem("admin", dados.admin === true ? "true" : "false");
+      localStorage.setItem("loginSucesso", "true");
+
+      // ✅ Redireciona para animação após o toast
+      setTimeout(() => {
+        window.location.href = "login-animation.html";
+      }, 1500); // Tempo para o toast desaparecer
     } else {
       mostrarToast("Usuário não encontrado no banco de dados.", "red");
     }
@@ -100,7 +104,7 @@ async function cadastrarUsuario(
       role: "usuario",
     });
 
-    mostrarToast("Cadastro realizado com sucesso!");
+    mostrarToast("Cadastro realizado com sucesso!", "success");
     window.location.href = "index.html";
   } catch (error) {
     mostrarToast("Erro ao cadastrar: " + error.message);
@@ -125,7 +129,7 @@ async function redefinirSenhaAdmin(userId, novaSenha) {
     const userRef = doc(db, "usuarios", userId);
     await updateDoc(userRef, { senhaTemporaria: novaSenha });
 
-    mostrarToast("Senha redefinida com sucesso!");
+    mostrarToast("Senha redefinida com sucesso!", "success");
   } catch (error) {
     mostrarToast("Erro ao redefinir senha: " + error.message);
   }

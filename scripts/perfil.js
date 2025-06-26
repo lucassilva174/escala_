@@ -1,252 +1,40 @@
-// perfil.js corrigido com ajuste definitivo no clique do calendário
-import { auth, db } from "./firebase-config.js";
+// perfil.js (principal da página de perfil)
+import { auth } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import {
-  doc,
-  getDoc,
-  updateDoc,
-  collection,
-  getDocs,
-  setDoc,
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-let userUid = null;
-let usuarioLogado = {};
-let usuarioAtual = {};
+import { loadLoggedInUserData, getLoggedInUserData } from "./currentUser.js";
+import { carregarCalendario } from "./calendar.js"; // Importa a função do calendário
 
 onAuthStateChanged(auth, async (user) => {
-  if (!user) return (window.location.href = "index.html");
-  userUid = user.uid;
+  if (!user) {
+    window.location.href = "index.html";
+    return;
+  }
 
-  const userDocRef = doc(db, "usuarios", user.uid);
-  const userDocSnap = await getDoc(userDocRef);
+  const userData = await loadLoggedInUserData(user.uid);
+  if (!userData) {
+    alert("Usuário não encontrado.");
+    return;
+  }
 
-  if (!userDocSnap.exists()) return alert("Usuário não encontrado.");
-
-  usuarioLogado = userDocSnap.data();
-  usuarioAtual = usuarioLogado;
+  const usuarioLogado = getLoggedInUserData(); // Pega os dados carregados
 
   document.getElementById("perfilContainer").innerHTML = `
-    <div class="card"><strong>Email</strong><div>${
-      usuarioLogado.email || user.email
-    }</div></div>
-    <div class="card"><strong>Telefone</strong><div>${
-      usuarioLogado.telefone || "Não informado"
-    }</div></div>
-    <div class="card"><strong>Instrumentos</strong><div>${(
-      usuarioLogado.instrumentos || []
-    ).join(", ")}</div></div>
-    <div class="card"><strong>Equipe</strong><div>${
-      usuarioLogado.equipe || "Não informado"
-    }</div></div>
-  `;
+        <div class="card"><strong>Email</strong><div>${
+          usuarioLogado.email || user.email
+        }</div></div>
+        <div class="card"><strong>Telefone</strong><div>${
+          usuarioLogado.telefone || "Não informado"
+        }</div></div>
+        <div class="card"><strong>Instrumentos</strong><div>${(
+          usuarioLogado.instrumentos || []
+        ).join(", ")}</div></div>
+        <div class="card"><strong>Equipe</strong><div>${
+          usuarioLogado.equipe || "Não informado"
+        }</div></div>
+    `;
 
-  await carregarCalendario(userUid);
+  await carregarCalendario(); // Chama a função para carregar o calendário
 });
 
-async function carregarCalendario(uid) {
-  const eventos = [];
-  const mapaPorData = {};
-
-  const escalasSnap = await getDocs(collection(db, "escalas"));
-  escalasSnap.forEach((docSnap) => {
-    const dados = docSnap.data();
-    const nome = dados.nome || "Usuário";
-    const userId = dados.uid;
-    (dados.diasSelecionados || []).forEach((dia) => {
-      const data = dia.data;
-      if (!mapaPorData[data]) mapaPorData[data] = [];
-      mapaPorData[data].push({
-        nome,
-        instrumento: dia.instrumento,
-        descricao: dia.descricao,
-        userId,
-      });
-    });
-  });
-
-  const grupoExtraSnap = await getDocs(collection(db, "grupoExtra"));
-  grupoExtraSnap.forEach((docSnap) => {
-    const dados = docSnap.data();
-    const data = dados.data;
-    if (!mapaPorData[data]) mapaPorData[data] = [];
-    mapaPorData[data].push({
-      nome: dados.nome,
-      instrumento: dados.instrumento,
-      descricao: dados.descricao,
-      userId: "grupoExtra",
-    });
-  });
-
-  Object.keys(mapaPorData).forEach((data) => {
-    const lista = mapaPorData[data];
-    const temUsuarioAtual = lista.some((item) => item.userId === uid);
-    const temOutros = lista.some((item) => item.userId !== uid);
-
-    if (temUsuarioAtual)
-      eventos.push({ title: "Marcado", start: data, color: "#47a447" });
-    if (temOutros)
-      eventos.push({ title: "Marcado", start: data, color: "#f39c12" });
-  });
-
-  const calendar = new FullCalendar.Calendar(
-    document.getElementById("calendarioContainer"),
-    {
-      initialView: "dayGridMonth",
-      locale: "pt-br",
-      height: 500,
-      headerToolbar: { left: "prev,next today", center: "title", right: "" },
-      events: eventos,
-      dateClick: async function (info) {
-        // ✅ Ajuste de fuso horário: converte corretamente para data local em ISO (yyyy-mm-dd)
-        const localDate = new Date(
-          info.date.getTime() - info.date.getTimezoneOffset() * 60000
-        );
-        const data = localDate.toISOString().split("T")[0];
-
-        const lista = mapaPorData[data];
-        if (!lista) return;
-
-        const container = document.getElementById("modalLista");
-        const titulo = document.getElementById("modalData");
-        const manhaEl = document.getElementById("listaManha");
-        const noiteEl = document.getElementById("listaNoite");
-
-        manhaEl.innerHTML = "";
-        noiteEl.innerHTML = "";
-
-        // ✅ Agora usa nome do evento + data, mantendo a data correta
-        // ✅ Remove qualquer texto entre parênteses e espaços extras
-        let descricaoBruta = lista[0]?.descricao || "Evento";
-        const descricaoEvento = descricaoBruta
-          .replace(/\s*\(.*?\)\s*/g, "")
-          .trim();
-
-        const [ano, mes, diaNum] = data.split("-");
-        titulo.innerHTML = `<strong>${descricaoEvento}</strong><br>${diaNum}/${mes}/${ano}`;
-        //titulo.innerHTML = `Evento: <strong>${descricaoEvento}</strong><br>Data: ${diaNum}/${mes}/${ano}`;
-
-        lista.forEach((item) => {
-          const li = document.createElement("li");
-          li.textContent = `${item.nome} - ${item.instrumento}`;
-          const desc = item.descricao?.toLowerCase() || "";
-
-          (desc.includes("noite") ? noiteEl : manhaEl).appendChild(li);
-        });
-
-        const botao = document.getElementById("btnAddLink");
-        const isMinistro = usuarioLogado.instrumentos?.includes("Ministro");
-        const isAdmin = usuarioLogado.admin === true;
-
-        if (isMinistro || isAdmin) {
-          botao.style.display = "inline-block";
-          botao.onclick = () => abrirModalLinks(data, descricaoEvento);
-        } else {
-          botao.style.display = "none";
-          abrirModalLinks(data, descricaoEvento);
-        }
-
-        container.style.display = "flex";
-      },
-    }
-  );
-
-  calendar.render();
-}
-
-// O restante do código (abrirModalLinks, carregarLinksSalvos, etc.) permanece o mesmo
-
-// ▶️ Modal para adicionar/exibir links de músicas
-function abrirModalLinks(data, descricao) {
-  const modal = document.getElementById("modalLinks");
-  const lista = document.getElementById("listaLinks");
-  const eventoId = `${data}_${descricao}`;
-
-  document.getElementById("dataModalLinks").value = data;
-  document.getElementById("descricaoModalLinks").value = descricao;
-  document.getElementById("novoLink").value = "";
-  modal.style.display = "flex";
-
-  carregarLinksSalvos(eventoId, lista);
-
-  const form = document.getElementById("formLinks");
-  form.onsubmit = async (e) => {
-    e.preventDefault();
-    const url = document.getElementById("novoLink").value.trim();
-    const titulo = prompt("Digite o nome da música:").trim();
-    if (!url || !titulo) return;
-
-    await adicionarLink(eventoId, { url, titulo });
-    document.getElementById("novoLink").value = "";
-    carregarLinksSalvos(eventoId, lista);
-  };
-
-  form.style.display =
-    usuarioAtual.instrumentos?.includes("Ministro") || usuarioAtual.admin
-      ? "block"
-      : "none";
-}
-
-// ▶️ Carrega e exibe os links salvos
-async function carregarLinksSalvos(eventoId, listaContainer) {
-  const docRef = doc(db, "linksEventos", eventoId);
-  const snap = await getDoc(docRef);
-
-  listaContainer.innerHTML = "";
-
-  if (snap.exists()) {
-    const links = snap.data().links || [];
-    links.forEach((item, index) => {
-      const { url, titulo } =
-        typeof item === "string"
-          ? { url: item, titulo: `Música ${index + 1}` }
-          : item;
-
-      const li = document.createElement("li");
-      const a = document.createElement("a");
-      a.href = url;
-      a.target = "_blank";
-      a.textContent = `🎵 ${titulo}`;
-      a.style.marginRight = "8px";
-
-      li.appendChild(a);
-
-      if (
-        usuarioAtual.instrumentos?.includes("Ministro") ||
-        usuarioAtual.admin
-      ) {
-        const btn = document.createElement("button");
-        btn.textContent = "❌";
-        btn.onclick = async () => {
-          await removerLink(eventoId, index);
-          carregarLinksSalvos(eventoId, listaContainer);
-        };
-        li.appendChild(btn);
-      }
-
-      listaContainer.appendChild(li);
-    });
-  } else {
-    listaContainer.innerHTML =
-      "<li style='color:gray'>Nenhum link de música registrado.</li>";
-  }
-}
-
-// ▶️ Adiciona link ao evento
-async function adicionarLink(eventoId, objLink) {
-  const ref = doc(db, "linksEventos", eventoId);
-  const snap = await getDoc(ref);
-  const links = snap.exists() ? snap.data().links || [] : [];
-  links.push(objLink);
-  await setDoc(ref, { links });
-}
-
-// ▶️ Remove link do evento
-async function removerLink(eventoId, index) {
-  const ref = doc(db, "linksEventos", eventoId);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) return;
-  const links = snap.data().links || [];
-  links.splice(index, 1);
-  await setDoc(ref, { links });
-}
+// Outras lógicas que eram globais ou não se encaixavam em outro lugar, mas são específicas do perfil.
+// Exemplo: se houver alguma interação com o HTML do perfil que não seja o calendário ou modais de link.

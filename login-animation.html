@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bem-vindo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(50px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .fade-in-up {
+        animation: fadeInUp 2s ease-out forwards;
+      }
+
+      .fade-in-logo {
+        animation: fadeInUp 3s ease-in-out forwards;
+      }
+
+      .fade-out {
+        animation: fadeOut 1s ease-in-out forwards;
+      }
+
+      @keyframes fadeOut {
+        to {
+          opacity: 0;
+          filter: brightness(0.9);
+        }
+      }
+    </style>
+  </head>
+  <body
+    class="h-screen w-screen flex items-center justify-center bg-cover bg-center text-white"
+    style="background-image: url('img/fundo.png')"
+  >
+    <div
+      id="splash"
+      class="flex flex-col items-center text-center p-6 backdrop-blur-sm bg-black/60 rounded-xl"
+    >
+      <p class="text-lg sm:text-xl max-w-md leading-relaxed fade-in-up mt-4">
+        "Se o meu povo, que se chama pelo meu nome, se humilhar, e orar, e me
+        buscar, e se converter dos seus maus caminhos, então, eu ouvirei dos
+        céus, perdoarei os seus pecados e sararei a sua terra." <br />
+        <span class="italic">2 Crônicas 7:14</span>
+      </p>
+    </div>
+
+    <script>
+      // Redirecionar após 10 segundos
+      setTimeout(() => {
+        const splash = document.getElementById("splash");
+        splash.classList.add("fade-out");
+
+        // Aguarda o fade terminar antes de redirecionar
+        setTimeout(() => {
+          const isAdmin = localStorage.getItem("admin") === "true";
+          window.location.href = isAdmin ? "admin.html" : "perfil.html";
+        }, 1000);
+      }, 10000);
+    </script>
+  </body>
+</html>

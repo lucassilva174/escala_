@@ -32,6 +32,7 @@ async function criarHeader(nome, fotoURL, isAdmin = false) {
         <li><a href="perfil.html" class="block px-4 py-2 hover:bg-gray-100">Perfil</a></li>
         <li><a href="dias.html" class="block px-4 py-2 hover:bg-gray-100">Escala</a></li>
         <li><label for="fotoInput" class="block px-4 py-2 cursor-pointer hover:bg-gray-100">Adicionar Imagem</label></li>
+        <li><a id="paletaLink" class="block px-4 py-2 hover:bg-gray-100 cursor-pointer  text-blue-600">Paletas</a></li>
         <li><a id="consultaLink" class="block px-4 py-2 hover:bg-gray-100 cursor-pointer  text-blue-600">Consulta</a></li>
         <li><a id="usuariosLink" class="block px-4 py-2 hover:bg-gray-100 cursor-pointer  text-blue-600">Usuários</a></li>
         <li><a id="adminLink" class="block px-4 py-2 hover:bg-gray-100 cursor-pointer text-blue-600">ADM</a></li>
@@ -66,42 +67,119 @@ async function criarHeader(nome, fotoURL, isAdmin = false) {
   const adminLink = document.getElementById("adminLink");
   const consultaLink = document.getElementById("consultaLink");
   const usuariosLink = document.getElementById("usuariosLink");
+  const paletaLink = document.getElementById("paletaLink");
 
-  if (adminLink) {
-    const user = auth.currentUser;
-    if (user) {
-      const userDoc = await getDoc(doc(db, "usuarios", user.uid));
-      const isAdmin = userDoc.exists() && userDoc.data().admin === true;
-
-      if (isAdmin) {
-        adminLink.onclick = () => (window.location.href = "admin.html");
-      } else {
-        adminLink.onclick = (e) => {
-          e.preventDefault();
-          exibirToast(
-            "Você não tem permissão para acessar o painel do administrador."
-          );
-        };
-      }
+  // Função assíncrona para obter o status de admin e ministro do usuário
+  async function getUserPermissions(user) {
+    if (!user) {
+      return { isAdmin: false, isMinistro: false };
     }
+    const userDoc = await getDoc(doc(db, "usuarios", user.uid));
+    const data = userDoc.data();
+    return {
+      isAdmin: userDoc.exists() && data.admin === true,
+      isMinistro: userDoc.exists() && data.ministro === true,
+    };
   }
-  if (consultaLink) {
-    consultaLink.onclick = (e) => {
+
+  // Lógica para adminLink
+  if (adminLink) {
+    adminLink.onclick = async (e) => {
+      // Tornar a função assíncrona
       e.preventDefault();
-      if (isAdmin) {
-        window.location.href = "consulta.html";
+      const user = auth.currentUser;
+      if (user) {
+        const { isAdmin } = await getUserPermissions(user); // Obter permissões
+        if (isAdmin) {
+          window.location.href = "admin.html";
+        } else {
+          exibirToast(
+            "Você não tem permissão para acessar o painel do administrador.",
+            "error"
+          );
+        }
       } else {
-        exibirToast("Você não tem permissão para acessar a tela de consulta.");
+        exibirToast(
+          "Você precisa estar logado para acessar esta página.",
+          "error"
+        );
       }
     };
   }
-  if (usuariosLink) {
-    usuariosLink.onclick = (e) => {
+
+  // Lógica para consultaLink (mantém a restrição para admin)
+  if (consultaLink) {
+    consultaLink.onclick = async (e) => {
+      // Tornar a função assíncrona
       e.preventDefault();
-      if (isAdmin) {
-        window.location.href = "usuarios.html";
+      const user = auth.currentUser;
+      if (user) {
+        const { isAdmin } = await getUserPermissions(user); // Obter permissões
+        if (isAdmin) {
+          window.location.href = "consulta.html";
+        } else {
+          exibirToast(
+            "Você não tem permissão para acessar a tela de consulta.",
+            "error"
+          );
+        }
       } else {
-        exibirToast("Você não tem permissão para acessar a tela de usuários.");
+        exibirToast(
+          "Você precisa estar logado para acessar esta página.",
+          "error"
+        );
+      }
+    };
+  }
+
+  // Lógica para usuariosLink (mantém a restrição para admin)
+  if (usuariosLink) {
+    usuariosLink.onclick = async (e) => {
+      // Tornar a função assíncrona
+      e.preventDefault();
+      const user = auth.currentUser;
+      if (user) {
+        const { isAdmin } = await getUserPermissions(user); // Obter permissões
+        if (isAdmin) {
+          window.location.href = "usuarios.html";
+        } else {
+          exibirToast(
+            "Você não tem permissão para acessar a tela de usuários.",
+            "error"
+          );
+        }
+      } else {
+        exibirToast(
+          "Você precisa estar logado para acessar esta página.",
+          "error"
+        );
+      }
+    };
+  }
+
+  // Lógica para paletaLink (Permite acesso para admin OU ministro)
+  if (paletaLink) {
+    paletaLink.onclick = async (e) => {
+      // Tornar a função assíncrona
+      e.preventDefault();
+      const user = auth.currentUser;
+      if (user) {
+        const { isAdmin, isMinistro } = await getUserPermissions(user); // Obter ambas as permissões
+
+        // Permite acesso se for admin OU se tiver ministro: true
+        if (isAdmin || isMinistro) {
+          window.location.href = "paleta.html";
+        } else {
+          exibirToast(
+            "Você não tem permissão para acessar a tela de Paletas.",
+            "error"
+          );
+        }
+      } else {
+        exibirToast(
+          "Você precisa estar logado para acessar esta página.",
+          "error"
+        );
       }
     };
   }
@@ -133,9 +211,9 @@ async function criarHeader(nome, fotoURL, isAdmin = false) {
               await updateDoc(doc(db, "usuarios", user.uid), {
                 fotoURL: base64,
               });
-              exibirToast("Imagem de perfil atualizada!");
+              exibirToast("Imagem de perfil atualizada!", "success");
             } catch (error) {
-              exibirToast("Erro ao salvar imagem.");
+              exibirToast("Erro ao salvar imagem.", "error");
             }
           }
         };

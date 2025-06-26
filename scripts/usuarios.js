@@ -66,10 +66,22 @@ async function carregarUsuarios() {
     `;
 
     // 🔹 Nome do usuário como botão
+    // 🔹 Nome do usuário com imagem
     const botaoNome = document.createElement("button");
     botaoNome.className =
-      "w-full text-left font-semibold text-white bg-cyan-800 px-4 py-2 rounded hover:bg-cyan-900 transition";
-    botaoNome.textContent = usuario.nome || "Sem nome";
+      "w-full flex items-center gap-3 text-left font-semibold text-white bg-cyan-800 px-1 py-2 rounded hover:bg-cyan-900 transition";
+
+    if (usuario.fotoURL) {
+      const img = document.createElement("img");
+      img.src = usuario.fotoURL;
+      img.alt = "Foto de perfil";
+      img.className = "w-12 h-12 rounded-full object-cover border border-white";
+      botaoNome.appendChild(img);
+    }
+
+    const nomeSpan = document.createElement("span");
+    nomeSpan.textContent = usuario.nome || "Sem nome";
+    botaoNome.appendChild(nomeSpan);
 
     // 🔹 Detalhes ocultos por padrão
     const detalhesDiv = document.createElement("div");
