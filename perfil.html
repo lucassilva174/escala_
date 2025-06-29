@@ -4,49 +4,205 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Perfil do Usuário</title>
-    <link rel="stylesheet" href="styles/global.css" />
-    <link rel="stylesheet" href="styles/perfil.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
     <link
       href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css"
       rel="stylesheet"
     />
+    <style>
+      .fc-daygrid-day-frame {
+        min-height: 60px; /* aumenta área útil */
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+      }
+
+      @media (max-width: 640px) {
+        .fc-daygrid-day-frame {
+          min-height: 80px;
+        }
+      }
+      /* Estilos adicionais para o toast */
+      #toastContainer {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+      }
+      .animate-fade-in {
+        animation: fadeIn 0.3s ease-out forwards;
+      }
+      .animate-fade-out {
+        animation: fadeOut 0.3s ease-in forwards;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes fadeOut {
+        from {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        to {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+      }
+    </style>
   </head>
-  <body>
-    <main>
-      <h2>Seu Perfil</h2>
+  <body class="bg-gray-50 text-gray-800">
+    <header id="header-root" class="w-full"></header>
 
-      <div id="perfilContainer" class="perfil-container">
-        <!-- Cards de dados do usuário -->
-      </div>
-
-      <div id="calendarioContainer" class="calendario-container">
-        <!-- Calendário será renderizado aqui -->
-      </div>
+    <main class="max-w-4xl mx-auto mt-8 px-4">
+      <h2 class="text-2xl font-bold text-center mb-4">Seu Perfil</h2>
+      <div
+        id="perfilContainer"
+        class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
+      ></div>
+      <div
+        id="calendarioContainer"
+        class="bg-white rounded-lg shadow p-4"
+      ></div>
     </main>
-    <!-- Modal de informações ao clicar no dia -->
-    <div id="modalLista" class="modal">
-      <div class="modal-content">
-        <h3>Participantes do dia <span id="modalData"></span></h3>
-        <div class="modal-columns">
+
+    <div
+      id="modalLista"
+      class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50"
+    >
+      <div class="bg-white p-6 rounded-lg w-full max-w-md">
+        <h3 class="text-lg font-semibold text-center mb-4">
+          <span id="modalData"></span>
+        </h3>
+        <div class="grid grid-cols-2 gap-4 mb-4">
           <div>
-            <h4>Manhã</h4>
-            <ul id="listaManha"></ul>
+            <h4 class="font-semibold text-blue-600 mb-2">Culto 1</h4>
+            <ul id="listaManha" class="space-y-1 text-sm"></ul>
           </div>
           <div>
-            <h4>Noite</h4>
-            <ul id="listaNoite"></ul>
+            <h4 class="font-semibold text-blue-600 mb-2">Culto 2</h4>
+            <ul id="listaNoite" class="space-y-1 text-sm"></ul>
           </div>
         </div>
+        <div class="flex flex-col gap-2">
+          <button
+            id="btnCloseModalLista"
+            class="bg-gray-500 hover:bg-gray-600 text-white py-2 rounded"
+          >
+            Fechar
+          </button>
+          <button
+            id="btnAddLink"
+            class="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded hidden"
+          >
+            Link Músicas / Paleta
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="modalLinks"
+      class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50"
+    >
+      <div
+        class="bg-white w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 rounded-lg shadow-lg text-sm"
+      >
+        <h3 class="text-center text-lg font-semibold mb-4">
+          Links de Músicas e Paleta
+        </h3>
+        <form id="formLinks" class="mb-4 hidden">
+          <input type="hidden" id="dataModalLinks" />
+          <input type="hidden" id="descricaoModalLinks" />
+          <input
+            type="url"
+            id="novoLink"
+            placeholder="URL da música (YouTube, Spotify, etc.)"
+            required
+            class="w-full border px-3 py-2 rounded mb-2"
+          />
+          <button
+            type="submit"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
+          >
+            Adicionar Link
+          </button>
+        </form>
+
+        <ul id="listaLinks" class="space-y-2 mb-4"></ul>
+
+        <h3 class="font-semibold mt-4 mb-2">Paleta</h3>
         <button
-          onclick="document.getElementById('modalLista').style.display='none'"
+          id="btnEscolherPaleta"
+          class="bg-purple-600 hover:bg-purple-700 text-white py-2 rounded w-full mb-4"
+        >
+          Escolher Paleta
+        </button>
+        <div id="previewPaleta" class="mt-2 text-center">
+          <!-- Será preenchido dinamicamente com a imagem + botão -->
+        </div>
+
+        <div class="text-center mt-4">
+          <button
+            id="btnCloseModalLinks"
+            class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded w-full"
+          >
+            Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Escolha de Paleta -->
+    <div
+      id="modalEscolherPaleta"
+      class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50"
+    >
+      <div
+        class="bg-white p-6 rounded-lg w-full max-w-md max-h-[80vh] overflow-y-auto"
+      >
+        <h3 class="text-lg font-semibold text-center mb-4">
+          Escolha uma Paleta
+        </h3>
+        <div id="galeriaPaletas" class="grid grid-cols-2 gap-4 mb-4">
+          <!-- Paletas serão inseridas aqui dinamicamente -->
+        </div>
+        <button
+          id="btnFecharEscolhaPaleta"
+          class="w-full bg-gray-500 hover:bg-gray-600 text-white py-2 rounded"
         >
           Fechar
         </button>
       </div>
     </div>
 
+    <div id="toastContainer"></div>
+
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script type="module" src="scripts/firebase-config.js"></script>
+    <script type="module" src="scripts/utils.js"></script>
+    <script type="module" src="scripts/firestoreService.js"></script>
+    <script type="module" src="scripts/currentUser.js"></script>
+    <script type="module" src="scripts/musicTitleModal.js"></script>
+    <script type="module" src="scripts/eventLinkModal.js"></script>
+    <script type="module" src="scripts/calendar.js"></script>
     <script type="module" src="scripts/perfil.js"></script>
     <script type="module" src="scripts/header.js"></script>
+
+    <script type="module">
+      // Lógica para fechar os modais (pode ficar aqui, ou ser movida para um arquivo de UI ou modalManager.js)
+      document.getElementById("btnCloseModalLista").onclick = () => {
+        document.getElementById("modalLista").style.display = "none";
+      };
+      document.getElementById("btnCloseModalLinks").onclick = () => {
+        document.getElementById("modalLinks").style.display = "none";
+      };
+    </script>
   </body>
 </html>

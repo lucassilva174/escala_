@@ -12,7 +12,7 @@ import {
   deleteDoc,
   setDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
+import { exibirToast, showConfirmationModal } from "./utils.js";
 // 🔒 Verifica se administrador
 if (window.location.pathname.endsWith("consulta.html")) {
   auth.onAuthStateChanged(async (user) => {
@@ -25,7 +25,7 @@ if (window.location.pathname.endsWith("consulta.html")) {
     const isAdmin = userDoc.exists() && userDoc.data().admin;
 
     if (!isAdmin) {
-      alert("Acesso restrito ao administrador.");
+      exibirToast("Acesso restrito ao administrador.", "error");
       window.location.href = "perfil.html";
       return;
     }
@@ -34,6 +34,29 @@ if (window.location.pathname.endsWith("consulta.html")) {
   });
 }
 
+/**
+ * Determina o período ('manha' ou 'noite') de uma descrição de evento.
+ * Se a descrição não contiver 'noite' nem 'manhã', assume 'manha' como padrão.
+ * @param {string} description A string de descrição do evento.
+ * @returns {string} 'manha', 'noite', ou 'outro' (se você quiser uma categoria para eventos sem turno definido).
+ */
+function getPeriodoFromDescricao(description) {
+  const lowerDesc = description?.toLowerCase() || "";
+  if (lowerDesc.includes("noite")) {
+    return "noite";
+  }
+  // Adicionado tratamento para "manhã" com e sem acento
+  if (lowerDesc.includes("manhã") || lowerDesc.includes("manha")) {
+    return "manha";
+  }
+  // Se não for explicitamente "noite" ou "manhã", você pode decidir:
+  // - Deixar como "manha" (comportamento atual de fallback)
+  // - Retornar um valor diferente, como "indefinido" ou "geral", para um tratamento mais rigoroso.
+  // Por enquanto, manteremos o padrão "manha" se "noite" não for encontrado.
+  return "manha";
+}
+
+// ... (Resto do seu código)
 // 🔁 Controle do modal de edição
 let uidAtual = "";
 let indiceAtual = -1;
@@ -59,16 +82,72 @@ window.editarDia = async (uid, index) => {
       descricaoInput.value = dia.descricao || "";
       document.getElementById("modalEdicao").style.display = "flex";
     } else {
-      alert("Evento não encontrado.");
+      exibirToast("Evento não encontrado.", "error");
     }
   } else {
-    alert("Usuário não encontrado.");
+    exibirToast("Usuário não encontrado.", "error");
   }
 };
 
 window.fecharModalEdicao = function () {
   document.getElementById("modalEdicao").style.display = "none";
 };
+
+// scripts/consulta.js
+
+// ... (código existente, incluindo 'uidAtual' e 'indiceAtual')
+
+window.removerParticipante = async (type, id, index = -1) => {
+  // 'type' pode ser 'escala' ou 'grupoExtra'
+  const confirmacao = await showConfirmationModal(
+    "Tem certeza que deseja remover este participante?"
+  );
+  if (!confirmacao) return;
+
+  try {
+    if (type === "escala") {
+      // Lógica para remover de 'escalas'
+      const escalaRef = doc(db, "escalas", id); // 'id' é o UID do usuário (documento da escala)
+      const docSnap = await getDoc(escalaRef);
+
+      if (docSnap.exists()) {
+        const dados = docSnap.data();
+        const novaLista = [...(dados.diasSelecionados || [])];
+
+        if (index > -1 && index < novaLista.length) {
+          novaLista.splice(index, 1); // Remove o dia específico pelo índice
+
+          if (novaLista.length === 0) {
+            // Se não houver mais dias selecionados, pode ser útil remover o documento inteiro da escala
+            await deleteDoc(escalaRef);
+            exibirToast(
+              "Participante e todos os dias associados removidos com sucesso!"
+            );
+          } else {
+            await updateDoc(escalaRef, { diasSelecionados: novaLista });
+            exibirToast("Dia do participante removido com sucesso!");
+          }
+        } else {
+          exibirToast("Dia do participante não encontrado.");
+        }
+      } else {
+        exibirToast("Escala do participante não encontrada.");
+      }
+    } else if (type === "grupoExtra") {
+      // Lógica para remover de 'grupoExtra'
+      const grupoExtraRef = doc(db, "grupoExtra", id); // 'id' é o ID do documento do participante extra
+      await deleteDoc(grupoExtraRef);
+      exibirToast("Participante extra removido com sucesso!");
+    }
+
+    location.reload(); // Recarrega a página para atualizar a tabela
+  } catch (error) {
+    console.error("Erro ao remover participante:", error);
+    exibirToast("Erro ao remover participante. Veja o console.");
+  }
+};
+
+// ... (restante do seu código, como fecharModalEdicao, formEdicao listener, etc.)
 
 document.getElementById("formEdicao").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -93,52 +172,62 @@ document.getElementById("formEdicao").addEventListener("submit", async (e) => {
 
       await updateDoc(escalaRef, { diasSelecionados: novaLista });
 
-      alert("Dia atualizado com sucesso!");
+      exibirToast("Dia atualizado com sucesso!", "success");
       fecharModalEdicao();
       location.reload();
     }
   } catch (error) {
     console.error("Erro ao salvar edição:", error);
-    alert("Erro ao editar a escala.");
+    exibirToast("Erro ao editar a escala.", "error");
   }
 });
+
+/// scripts/consulta.js
+
+// ... (código existente da função removerParticipante e outras)
 
 async function carregarEscalas() {
   const escalasRef = collection(db, "escalas");
   const snapshot = await getDocs(escalasRef);
   const tabela = document.createElement("table");
-  tabela.classList.add("tabela-escala");
+  tabela.classList.add("tabela-escala"); // Mantém a classe existente para estilos gerais da tabela
 
   const thead = document.createElement("thead");
   thead.innerHTML = `
-    <tr>
-      <th>Data</th>
-      <th>Descrição</th>
-      <th>Nome</th>
-      <th>Instrumento</th>
-      <th>Ações</th>
-    </tr>
-  `;
+        <tr>
+            <th>Data</th>
+            <th>Descrição</th>
+            <th>Nome</th>
+            <th>Instrumento</th>
+            <th>Ações</th>
+        </tr>
+    `;
   tabela.appendChild(thead);
 
   const tbody = document.createElement("tbody");
 
   snapshot.forEach((docSnap) => {
     const dados = docSnap.data();
-    const uid = dados.uid;
+    const uid = docSnap.id;
     const nome = dados.nome || "Usuário";
 
     dados.diasSelecionados?.forEach((dia, index) => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${dia.data}</td>
-        <td>${dia.descricao || "-"}</td>
-        <td>${nome}</td>
-        <td>${dia.instrumento}</td>
-        <td>
-          <button class="btn-editar" onclick="editarDia('${uid}', ${index})">✏️</button>
-        </td>
-      `;
+                <td>${dia.data}</td>
+                <td>${dia.descricao || "-"}</td>
+                <td>${nome}</td>
+                <td>${dia.instrumento}</td>
+                <td class="flex gap-2 justify-center">
+  <button title="Editar" onclick="editarDia('${uid}', ${index})" class="text-yellow-600 hover:text-yellow-800">
+    ✏️
+  </button>
+  <button title="Excluir" onclick="excluirDia('${uid}', ${index})" class="text-red-600 hover:text-red-800">
+    ❌
+  </button>
+</td>
+
+            `;
       tbody.appendChild(tr);
     });
   });
@@ -152,14 +241,16 @@ async function carregarEscalas() {
 
   extrasSnap.forEach((docSnap) => {
     const { data, descricao, nome, instrumento } = docSnap.data();
+    const idExtra = docSnap.id;
     const tr = document.createElement("tr");
     tr.innerHTML = `
-    <td>${data}</td>
-    <td>${descricao || "-"}</td>
-    <td>${nome || "-"}</td>
-    <td>${instrumento || "-"}</td>
-    <td>—</td>
-  `;
+            <td>${data}</td>
+            <td>${descricao || "-"}</td>
+            <td>${nome || "-"}</td>
+            <td>${instrumento || "-"}</td>
+            <td class="flex items-center justify-center gap-2"> <button class=" text-white px-2 py-1 rounded hover:bg-red-700 btn-remover" onclick="removerParticipante('grupoExtra', '${idExtra}')">❌</button>
+            </td>
+        `;
     tbody.appendChild(tr);
   });
 }
@@ -267,75 +358,149 @@ function atualizarListaVisual() {
   });
 }
 
-document.getElementById("btnAddParticipante").addEventListener("click", () => {
-  const nome = document.getElementById("novoNome").value.trim();
-  const instrumento = document.getElementById("novoInstrumento").value.trim();
-  const data = document.getElementById("novoData").value;
-  const descricao = document.getElementById("novoDescricao").value.trim();
+document
+  .getElementById("btnAddParticipante")
+  .addEventListener("click", async () => {
+    const nome = document.getElementById("novoNome").value.trim();
+    const instrumento = document
+      .getElementById("novoInstrumento")
+      .value.trim()
+      .toLowerCase();
+    const data = document.getElementById("novoData").value;
+    const descricao = document.getElementById("novoDescricao").value.trim();
 
-  if (!nome || !instrumento || !data || !descricao) {
-    alert("Preencha todos os campos.");
-    return;
-  }
+    // --- INÍCIO DA ALTERAÇÃO (btnAddParticipante) ---
+    // Determina o período do novo participante usando a função auxiliar
+    const novoParticipantePeriodo = getPeriodoFromDescricao(descricao);
+    // --- FIM DA ALTERAÇÃO (btnAddParticipante) ---
 
-  const duplicado = participantesExtras.some(
-    (p) =>
-      p.instrumento.toLowerCase() === instrumento.toLowerCase() &&
-      p.data === data
-  );
+    if (!nome || !instrumento || !data || !descricao) {
+      exibirToast("Preencha todos os campos.");
+      return;
+    }
 
-  if (duplicado) {
-    alert(
-      `Já existe um participante com o instrumento "${instrumento}" para o dia ${data}.`
+    // 🚫 Verifica se já está na lista temporária (mesmo instrumento, data e período)
+    const duplicadoNaLista = participantesExtras.some(
+      (p) =>
+        p.data === data &&
+        p.instrumento.toLowerCase() === instrumento &&
+        // --- ALTERAÇÃO AQUI ---
+        getPeriodoFromDescricao(p.descricao) === novoParticipantePeriodo
+      // --- FIM DA ALTERAÇÃO ---
     );
-    return;
-  }
+    if (duplicadoNaLista) {
+      exibirToast(
+        `"${instrumento}" já foi adicionado para ${novoParticipantePeriodo} (${data}).`
+      ); // Atualizado para mostrar o período
+      return;
+    }
 
-  participantesExtras.push({ nome, instrumento, data, descricao });
-  atualizarListaVisual();
-  document.getElementById("formNovoParticipante").reset();
-});
+    // 🔍 Verifica na coleção 'escalas'
+    const escalasSnap = await getDocs(collection(db, "escalas"));
+    for (const docSnap of escalasSnap.docs) {
+      const dados = docSnap.data();
+      const conflito = (dados.diasSelecionados || []).some(
+        (d) =>
+          d.data === data &&
+          d.instrumento?.toLowerCase() === instrumento &&
+          // --- ALTERAÇÃO AQUI ---
+          getPeriodoFromDescricao(d.descricao) === novoParticipantePeriodo
+        // --- FIM DA ALTERAÇÃO ---
+      );
+      if (conflito) {
+        exibirToast(
+          `"${instrumento}" já está marcado por ${dados.nome} no ${novoParticipantePeriodo} de ${data}.` // Atualizado para mostrar o período
+        );
+        return;
+      }
+    }
+
+    // 🔍 Verifica na coleção 'grupoExtra'
+    const grupoSnap = await getDocs(collection(db, "grupoExtra"));
+    for (const docSnap of grupoSnap.docs) {
+      const d = docSnap.data();
+      const conflitoExtra =
+        d.data === data &&
+        d.instrumento?.toLowerCase() === instrumento &&
+        // --- ALTERAÇÃO AQUI ---
+        getPeriodoFromDescricao(d.descricao) === novoParticipantePeriodo;
+      // --- FIM DA ALTERAÇÃO ---
+      if (conflitoExtra) {
+        exibirToast(
+          `"${instrumento}" já foi adicionado manualmente por ${d.nome} no ${novoParticipantePeriodo} de ${data}.` // Atualizado para mostrar o período
+        );
+        return;
+      }
+    }
+
+    // ✅ Adiciona à lista temporária
+    participantesExtras.push({ nome, instrumento, data, descricao });
+    atualizarListaVisual();
+    document.getElementById("formNovoParticipante").reset();
+  });
 
 document
   .getElementById("btnSalvarTodosParticipantes")
   .addEventListener("click", async () => {
     if (participantesExtras.length === 0) {
-      alert("Nenhum participante adicionado.");
+      exibirToast("Nenhum participante adicionado.");
       return;
     }
 
     try {
-      const grupoExtraRef = collection(db, "grupoExtra");
+      const escalasSnap = await getDocs(collection(db, "escalas"));
+      const grupoSnap = await getDocs(collection(db, "grupoExtra"));
 
-      // 🔎 Verifica se há duplicata no Firestore
       for (const p of participantesExtras) {
-        const q = query(
-          grupoExtraRef,
-          where("data", "==", p.data),
-          where("instrumento", "==", p.instrumento)
+        // --- INÍCIO DA ALTERAÇÃO (btnSalvarTodosParticipantes) ---
+        // Determina o período do participante a ser salvo
+        const pPeriodo = getPeriodoFromDescricao(p.descricao);
+        // --- FIM DA ALTERAÇÃO (btnSalvarTodosParticipantes) ---
+
+        const conflitoEscala = escalasSnap.docs.some((docSnap) =>
+          (docSnap.data().diasSelecionados || []).some(
+            (d) =>
+              d.data === p.data &&
+              d.instrumento?.toLowerCase() === p.instrumento.toLowerCase() &&
+              // --- ALTERAÇÃO AQUI ---
+              getPeriodoFromDescricao(d.descricao) === pPeriodo
+            // --- FIM DA ALTERAÇÃO ---
+          )
         );
-        const snapshot = await getDocs(q);
-        if (!snapshot.empty) {
-          alert(
-            `O instrumento "${p.instrumento}" já está preenchido em ${p.data}.`
+
+        const conflitoGrupo = grupoSnap.docs.some((docSnap) => {
+          const d = docSnap.data();
+          return (
+            d.data === p.data &&
+            d.instrumento?.toLowerCase() === p.instrumento.toLowerCase() &&
+            // --- ALTERAÇÃO AQUI ---
+            getPeriodoFromDescricao(d.descricao) === pPeriodo
+            // --- FIM DA ALTERAÇÃO ---
+          );
+        });
+
+        if (conflitoEscala || conflitoGrupo) {
+          exibirToast(
+            `"${p.instrumento}" já está marcado no ${pPeriodo} de ${p.data}.` // Atualizado para mostrar o período
           );
           return;
         }
       }
 
+      // ✅ Salvar no Firestore
       const promises = participantesExtras.map((p) =>
         addDoc(collection(db, "grupoExtra"), p)
       );
       await Promise.all(promises);
 
-      alert("Participantes adicionados com sucesso!");
+      exibirToast("Participantes adicionados com sucesso!");
       participantesExtras = [];
       atualizarListaVisual();
       fecharModalParticipante();
       location.reload();
     } catch (error) {
-      console.error("Erro ao adicionar participantes:", error);
-      alert("Erro ao salvar participantes.");
+      console.error("Erro ao salvar participantes:", error);
+      exibirToast("Erro ao salvar participantes.", "error");
     }
   });
 
@@ -343,7 +508,7 @@ document
 document
   .getElementById("btnLimparDados")
   .addEventListener("click", async () => {
-    const confirmacao = confirm(
+    const confirmacao = await showConfirmationModal(
       "Tem certeza que deseja APAGAR todos os dados da escala?\nUm backup será criado antes."
     );
 
@@ -388,10 +553,90 @@ document
         deletarColecao("grupoExtra"),
       ]);
 
-      alert("Dados apagados com sucesso. Backup salvo em: " + backupPath);
+      exibirToast(
+        "Dados apagados com sucesso. Backup salvo em: ",
+        "success" + backupPath
+      );
       location.reload();
     } catch (error) {
       console.error("Erro ao apagar e fazer backup:", error);
-      alert("Erro ao limpar dados. Veja o console.");
+      exibirToast("Erro ao limpar dados. Veja o console.", "error");
     }
   });
+
+// ✅ Visualização PDF modal
+window.visualizarEscala = async function () {
+  const escalasRef = collection(db, "escalas");
+  const snapshot = await getDocs(escalasRef);
+  const eventosMap = new Map();
+
+  snapshot.forEach((docSnap) => {
+    const dados = docSnap.data();
+    const nome = dados.nome || "Usuário";
+    (dados.diasSelecionados || []).forEach((dia) => {
+      const chave = `${dia.data} - ${dia.descricao || ""}`;
+      if (!eventosMap.has(chave)) eventosMap.set(chave, []);
+      eventosMap.get(chave).push(`${nome} - ${dia.instrumento}`);
+    });
+  });
+
+  const extrasRef = collection(db, "grupoExtra");
+  const extrasSnap = await getDocs(extrasRef);
+  extrasSnap.forEach((docSnap) => {
+    const { data, descricao, nome, instrumento } = docSnap.data();
+    const chave = `${data} - ${descricao || ""}`;
+    if (!eventosMap.has(chave)) eventosMap.set(chave, []);
+    eventosMap.get(chave).push(`${nome} - ${instrumento}`);
+  });
+
+  const modal = document.createElement("div");
+  modal.className =
+    "fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center";
+  const content = document.createElement("div");
+  content.className =
+    "bg-white max-h-[90vh] w-[90vw] overflow-y-auto p-6 rounded shadow text-sm";
+
+  const titulo = document.createElement("h3");
+  titulo.textContent = "Pré-visualização da Escala";
+  titulo.className = "text-xl font-bold mb-4 text-center";
+
+  const btnFechar = document.createElement("button");
+  btnFechar.textContent = "Fechar";
+  btnFechar.className =
+    "block mx-auto mt-6 bg-red-600 text-white px-4 py-2 rounded";
+  btnFechar.onclick = () => modal.remove();
+
+  content.appendChild(titulo);
+
+  [...eventosMap.entries()].sort().forEach(([chave, lista]) => {
+    const bloco = document.createElement("div");
+    bloco.className = "mb-4";
+    const tituloData = document.createElement("h4");
+    tituloData.textContent = chave;
+    tituloData.className = "font-semibold text-gray-800";
+    bloco.appendChild(tituloData);
+
+    lista.forEach((p) => {
+      const item = document.createElement("p");
+      item.textContent = `- ${p}`;
+      bloco.appendChild(item);
+    });
+
+    content.appendChild(bloco);
+  });
+
+  content.appendChild(btnFechar);
+  modal.appendChild(content);
+  document.body.appendChild(modal);
+};
+
+// ✅ Ligações dos botões
+const abrirModalBtn = document.getElementById("btnAbrirModal");
+if (abrirModalBtn)
+  abrirModalBtn.addEventListener(
+    "click",
+    () => (document.getElementById("modalParticipante").style.display = "flex")
+  );
+
+const visualizarBtn = document.getElementById("btnVisualizarPDF");
+if (visualizarBtn) visualizarBtn.addEventListener("click", visualizarEscala);

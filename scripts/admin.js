@@ -12,17 +12,6 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// Toast
-function showToast(message, type = "success") {
-  const toast = document.createElement("div");
-  toast.className = `toast ${type}`;
-  toast.textContent = message;
-  document.body.appendChild(toast);
-  setTimeout(() => {
-    toast.remove();
-  }, 3000);
-}
-
 // Referências principais
 const diasRef = collection(db, "diasDisponiveis");
 const eventosExtrasRef = collection(db, "eventosExtras");
@@ -39,6 +28,21 @@ async function adicionarDia(event) {
 
   if (!novaData || !descricao) {
     showToast("Preencha todos os campos.", "error");
+    return;
+  }
+
+  // ✅ Impede duplicatas: mesma data + mesma descrição
+  const snapshot = await getDocs(diasRef);
+  const existe = snapshot.docs.some((doc) => {
+    const dados = doc.data();
+    return (
+      dados.data === novaData &&
+      dados.descricao.trim().toLowerCase() === descricao.trim().toLowerCase()
+    );
+  });
+
+  if (!editandoDia && existe) {
+    showToast("Esse evento já foi cadastrado para essa data.", "error");
     return;
   }
 
@@ -72,11 +76,11 @@ async function excluirDia(id) {
   mostrarModalConfirmacao("Deseja realmente excluir este dia?", async () => {
     try {
       await deleteDoc(doc(db, "diasDisponiveis", id));
-      exibirToast("Dia excluído com sucesso.");
+      showToast("Dia excluído com sucesso.");
       carregarDias();
     } catch (error) {
       console.error("Erro ao excluir dia:", error);
-      exibirToast("Erro ao excluir dia.", true);
+      showToast("Erro ao excluir dia.", true);
     }
   });
 }
@@ -149,11 +153,11 @@ async function excluirEvento(id) {
     async () => {
       try {
         await deleteDoc(doc(db, "eventosExtras", id));
-        exibirToast("Evento extra excluído com sucesso.");
+        showToast("Evento extra excluído com sucesso.");
         carregarEventos();
       } catch (error) {
         console.error("Erro ao excluir evento extra:", error);
-        exibirToast("Erro ao excluir evento.", true);
+        showToast("Erro ao excluir evento.", true);
       }
     }
   );
@@ -273,4 +277,27 @@ function mostrarModalConfirmacao(mensagem, callbackConfirmar) {
 
   btnConfirmar.addEventListener("click", confirmar);
   btnCancelar.addEventListener("click", cancelar);
+}
+
+function showToast(message, type = "success") {
+  const toast = document.createElement("div");
+
+  const colors = {
+    success: "bg-green-600",
+    error: "bg-red-600",
+    info: "bg-blue-600",
+  };
+
+  toast.className = `
+    fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2
+    px-6 py-3 rounded-lg text-white font-medium shadow-lg text-center z-50
+    ${colors[type] || colors.info}
+  `;
+
+  toast.textContent = message;
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
 }

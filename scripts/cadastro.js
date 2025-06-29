@@ -5,31 +5,41 @@ import {
   setDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+function mostrarToast(mensagem, cor = "bg-green-600") {
+  const toast = document.getElementById("toast");
+  toast.textContent = mensagem;
+  toast.className = `
+    fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2
+    px-6 py-3 rounded-lg text-white font-medium shadow-lg text-center z-50 ${cor}`;
+  toast.classList.remove("hidden");
+
+  setTimeout(() => {
+    toast.classList.add("hidden");
+  }, 3000);
+}
+
 document
+
   .getElementById("cadastroForm")
   .addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const nome = document.getElementById("nome").value;
-    const telefone = document.getElementById("telefone").value;
-    const equipe = document.getElementById("equipe").value;
-    const email = document.getElementById("email").value;
+    const nome = document.getElementById("nome").value.trim();
+    const telefone = document.getElementById("telefone").value.trim();
+    const equipe = document.getElementById("equipe").value.trim();
+    const email = document.getElementById("email").value.trim();
     const senha = document.getElementById("senha").value;
 
-    const checkboxes = document.querySelectorAll(
-      '.instrumentos-box input[type="checkbox"]:checked'
-    );
-    const instrumentos = Array.from(checkboxes).map((el) => el.value);
+    // ✅ Coleta todos os checkboxes, mesmo ocultos com `peer hidden`
+    const checkboxes = document.querySelectorAll("input[type='checkbox']");
+    const instrumentos = Array.from(checkboxes)
+      .filter((el) => el.checked)
+      .map((el) => el.value);
 
     if (instrumentos.length === 0) {
-      alert("Selecione pelo menos um instrumento.");
+      mostrarToast("Selecione pelo menos um instrumento.");
       return;
     }
-
-    // 👉 Verifica se “Ministro” foi selecionado
-    const isMinistro = instrumentos.some(
-      (item) => item.toLowerCase() === "ministro"
-    );
 
     try {
       const userCredential = await createUserWithEmailAndPassword(
@@ -45,16 +55,18 @@ document
         email,
         instrumentos,
         equipe,
-        ministro: isMinistro, // ✅ grava true se tiver "Ministro"
       });
 
-      alert("Cadastro realizado com sucesso!");
+      mostrarToast("Cadastro realizado com sucesso!");
       window.location.href = "index.html";
     } catch (error) {
       if (error.code === "auth/email-already-in-use") {
-        alert("Este e-mail já está em uso. Tente outro.");
+        mostrarToast("Este e-mail já está em uso. Tente outro.");
       } else {
-        alert("Erro ao cadastrar. Verifique os dados e tente novamente.");
+        console.error(error);
+        mostrarToast(
+          "Erro ao cadastrar. Verifique os dados e tente novamente."
+        );
       }
     }
   });

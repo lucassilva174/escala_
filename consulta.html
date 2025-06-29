@@ -6,111 +6,198 @@
     <title>Consulta da Escala</title>
     <link rel="stylesheet" href="styles/global.css" />
     <link rel="stylesheet" href="styles/consulta.css" />
-    <script src="https://unpkg.com/lucide@latest"></script>
   </head>
-  <body>
-    <!-- Topo com header.js -->
-    <main>
-      <h2>Consulta da Escala</h2>
+  <body class="bg-gray-100 text-gray-800">
+    <main class="max-w-6xl mx-auto px-4 py-8">
+      <h2 class="text-2xl font-bold text-center mb-6">Consulta da Escala</h2>
 
-      <div id="botoesAcao" class="botoes-centro">
-        <button id="btnAbrirModal" class="botao-moderno azul">
-          <i class="lucide lucide-plus"></i> Adicionar Participante
+      <div style="text-align: right; margin-bottom: 16px">
+        <button id="btnAbrirModal">+ Adicionar Participante</button>
+
+        <button id="btnExportarCSV">Exportar CSV</button>
+
+        <button id="btnExportarPDF" onclick="exportarPDF()">
+          Exportar PDF
         </button>
-        <button id="btnExportarCSV" class="botao-moderno azul">
-          <i class="lucide lucide-file-spreadsheet"></i> Exportar CSV
-        </button>
-        <button id="btnExportarPDF" class="botao-moderno azul">
-          <i class="lucide lucide-file-text"></i> Exportar PDF
-        </button>
-        <button id="btnLimparDados" class="botao-moderno vermelho">
-          <i class="lucide lucide-trash-2"></i> Limpar Escala do Mês
+
+        <button
+          id="btnLimparDados"
+          style="background-color: #e74c3c; color: white"
+        >
+          Limpar Escala do Mês
         </button>
       </div>
 
-      <!-- Modal de Novo Participante -->
-      <div id="modalParticipante" class="modal" style="display: none">
-        <div class="modal-content" style="max-width: 500px">
-          <h3>Adicionar Participantes</h3>
-          <form id="formNovoParticipante">
-            <label>Nome</label>
-            <input type="text" id="novoNome" required />
-
-            <label>Instrumento</label>
-            <input type="text" id="novoInstrumento" required />
-
-            <label>Data</label>
-            <input type="date" id="novoData" required />
-
-            <label>Descrição</label>
-            <input type="text" id="novoDescricao" required />
-
-            <div style="text-align: center; margin-top: 12px">
-              <button type="button" id="btnAddParticipante">+ Adicionar</button>
+      <div
+        id="modalParticipante"
+        class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50"
+      >
+        <div class="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
+          <h3 class="text-lg font-semibold text-center mb-4">
+            Adicionar Participantes
+          </h3>
+          <form id="formNovoParticipante" class="space-y-3">
+            <div>
+              <label class="block mb-1">Nome</label>
+              <input
+                type="text"
+                id="novoNome"
+                required
+                class="w-full border rounded px-3 py-2"
+              />
+            </div>
+            <div>
+              <label class="block mb-1">Instrumento</label>
+              <input
+                type="text"
+                id="novoInstrumento"
+                required
+                class="w-full border rounded px-3 py-2"
+              />
+            </div>
+            <div>
+              <label class="block mb-1">Data</label>
+              <input
+                type="date"
+                id="novoData"
+                required
+                class="w-full border rounded px-3 py-2"
+              />
+            </div>
+            <div>
+              <label class="block mb-1">Descrição</label>
+              <input
+                type="text"
+                id="novoDescricao"
+                required
+                class="w-full border rounded px-3 py-2"
+              />
+            </div>
+            <div class="text-center">
+              <button
+                type="button"
+                id="btnAddParticipante"
+                class="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded"
+              >
+                <i class="lucide lucide-plus"></i> Adicionar
+              </button>
             </div>
           </form>
 
-          <!-- Lista dos participantes adicionados -->
           <ul
             id="listaParticipantes"
-            style="margin-top: 20px; list-style: none; padding: 0"
+            class="mt-4 space-y-2 text-sm text-gray-700"
           ></ul>
 
-          <div
-            style="
-              display: flex;
-              justify-content: center;
-              gap: 10px;
-              margin-top: 20px;
-            "
-          >
-            <button id="btnSalvarTodosParticipantes">Salvar Todos</button>
-            <button type="button" onclick="fecharModalParticipante()">
-              Cancelar
+          <div class="flex justify-center gap-4 mt-4">
+            <button
+              id="btnSalvarTodosParticipantes"
+              class="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded"
+            >
+              <i class="lucide lucide-save"></i> Salvar Todos
+            </button>
+            <button
+              type="button"
+              onclick="fecharModalParticipante()"
+              class="flex items-center gap-2 bg-gray-400 text-white px-4 py-2 rounded"
+            >
+              <i class="lucide lucide-x-circle"></i> Cancelar
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Tabela de escala -->
-      <div id="tabelaEscala" class="tabela-container"></div>
+      <div
+        id="tabelaEscala"
+        class="overflow-x-auto bg-white rounded-lg shadow p-4 text-sm"
+      ></div>
     </main>
 
-    <!-- Modal de Edição -->
-    <div id="modalEdicao" class="modal" style="display: none">
-      <div class="modal-content">
-        <h3>Editar Participante</h3>
-        <form id="formEdicao">
-          <label for="nomeEdicao">Nome:</label>
-          <input type="text" id="nomeEdicao" required />
-
-          <label for="instrumentoEdicao">Instrumento:</label>
-          <input type="text" id="instrumentoEdicao" required />
-
-          <label for="descricaoEdicao">Descrição:</label>
-          <input type="text" id="descricaoEdicao" required />
-
-          <div
-            class="botoes"
-            style="
-              display: flex;
-              gap: 8px;
-              justify-content: center;
-              margin-top: 16px;
-            "
-          >
-            <button type="submit">Salvar</button>
-            <button type="button" onclick="fecharModalEdicao()">
-              Cancelar
+    <div
+      id="modalEdicao"
+      class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50"
+    >
+      <div class="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
+        <h3 class="text-lg font-semibold text-center mb-4">
+          Editar Participante
+        </h3>
+        <form id="formEdicao" class="space-y-3">
+          <div>
+            <label class="block mb-1" for="nomeEdicao">Nome:</label>
+            <input
+              type="text"
+              id="nomeEdicao"
+              required
+              class="w-full border rounded px-3 py-2"
+            />
+          </div>
+          <div>
+            <label class="block mb-1" for="instrumentoEdicao"
+              >Instrumento:</label
+            >
+            <input
+              type="text"
+              id="instrumentoEdicao"
+              required
+              class="w-full border rounded px-3 py-2"
+            />
+          </div>
+          <div>
+            <label class="block mb-1" for="descricaoEdicao">Descrição:</label>
+            <input
+              type="text"
+              id="descricaoEdicao"
+              required
+              class="w-full border rounded px-3 py-2"
+            />
+          </div>
+          <div class="flex justify-center gap-4 pt-4">
+            <button
+              type="submit"
+              class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded"
+            >
+              <i class="lucide lucide-save"></i> Salvar
+            </button>
+            <button
+              type="button"
+              onclick="fecharModalEdicao()"
+              class="flex items-center gap-2 bg-gray-400 text-white px-4 py-2 rounded"
+            >
+              <i class="lucide lucide-x-circle"></i> Cancelar
             </button>
           </div>
         </form>
       </div>
     </div>
+    <div
+      id="confirmationModal"
+      class="fixed inset-0 bg-black bg-opacity-60 z-[1000] hidden items-center justify-center"
+    >
+      <div class="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-sm">
+        <h3
+          id="confirmationMessage"
+          class="text-lg font-semibold mb-4 text-center"
+        ></h3>
+        <div class="flex justify-center gap-4">
+          <button
+            id="confirmYesBtn"
+            class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
+          >
+            Sim
+          </button>
+          <button
+            id="confirmNoBtn"
+            class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded"
+          >
+            Não
+          </button>
+        </div>
+      </div>
+    </div>
 
-    <!-- Scripts -->
     <script type="module" src="scripts/consulta.js"></script>
     <script type="module" src="scripts/header.js"></script>
+    <script type="module" src="scripts/utils.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   </body>
 </html>
