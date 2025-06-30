@@ -4,27 +4,43 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Consulta da Escala</title>
-    <link rel="stylesheet" href="styles/global.css" />
-    <link rel="stylesheet" href="styles/consulta.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
   </head>
   <body class="bg-gray-100 text-gray-800">
     <main class="max-w-6xl mx-auto px-4 py-8">
       <h2 class="text-2xl font-bold text-center mb-6">Consulta da Escala</h2>
 
-      <div style="text-align: right; margin-bottom: 16px">
-        <button id="btnAbrirModal">+ Adicionar Participante</button>
-
-        <button id="btnExportarCSV">Exportar CSV</button>
-
-        <button id="btnExportarPDF" onclick="exportarPDF()">
-          Exportar PDF
+      <div id="botoesAcao" class="flex flex-wrap justify-center gap-4 mb-8">
+        <button
+          id="btnAbrirModal"
+          class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow"
+        >
+          <i class="lucide lucide-user-plus"></i> Adicionar Participante
         </button>
-
+        <button
+          id="btnExportarCSV"
+          class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow"
+        >
+          <i class="lucide lucide-table"></i> Exportar CSV
+        </button>
+        <button
+          id="btnExportarPDF"
+          class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow"
+        >
+          <i class="lucide lucide-file-down"></i> Exportar PDF
+        </button>
+        <button
+          id="btnVisualizarPDF"
+          class="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded shadow"
+        >
+          <i class="lucide lucide-search"></i> Visualizar PDF
+        </button>
         <button
           id="btnLimparDados"
-          style="background-color: #e74c3c; color: white"
+          class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded shadow"
         >
-          Limpar Escala do Mês
+          <i class="lucide lucide-folder-minus"></i> Limpar Escala do Mês
         </button>
       </div>
 
