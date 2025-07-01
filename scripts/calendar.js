@@ -1,6 +1,12 @@
 // calendar.js
 // Certifique-se de que FullCalendar está carregado via CDN no seu HTML
 import {
+  collection,
+  getDocs,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { db } from "./firebase-config.js";
+
+import {
   getEscalasCollection,
   getGrupoExtraCollection,
 } from "./firestoreService.js";
@@ -34,17 +40,24 @@ export async function carregarCalendario() {
     });
   });
 
-  const grupoExtraSnap = await getGrupoExtraCollection();
+  const grupoExtraSnap = await getDocs(collection(db, "grupoExtra"));
   grupoExtraSnap.forEach((docSnap) => {
     const dados = docSnap.data();
     const data = dados.data;
+    const uid = dados.uid || null;
+
     if (!mapaPorData[data]) mapaPorData[data] = [];
     mapaPorData[data].push({
       nome: dados.nome,
       instrumento: dados.instrumento,
       descricao: dados.descricao,
-      userId: "grupoExtra",
+      userId: uid || "grupoExtra",
     });
+
+    // Adiciona evento verde se for o usuário logado
+    if (uid === userUid) {
+      //eventos.push({ title: "Marcado", start: data, color: "#47a447" });
+    }
   });
 
   Object.keys(mapaPorData).forEach((data) => {

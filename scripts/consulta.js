@@ -7,6 +7,7 @@ import {
   getDoc,
   updateDoc,
   addDoc,
+  arrayUnion,
   query,
   where,
   deleteDoc,
@@ -93,9 +94,36 @@ window.fecharModalEdicao = function () {
   document.getElementById("modalEdicao").style.display = "none";
 };
 
-// scripts/consulta.js
+async function carregarUsuariosParaSelecao() {
+  const select = document.getElementById("usuarioExistente");
+  select.innerHTML =
+    '<option value="">— Digite ou selecione um usuário —</option>';
 
-// ... (código existente, incluindo 'uidAtual' e 'indiceAtual')
+  const snap = await getDocs(collection(db, "usuarios"));
+  snap.forEach((doc) => {
+    const data = doc.data();
+    const option = document.createElement("option");
+    option.value = doc.id;
+    option.textContent = data.nome;
+    option.dataset.instrumentos = (data.instrumentos || []).join(",");
+    select.appendChild(option);
+  });
+}
+carregarUsuariosParaSelecao();
+
+// Quando selecionar alguém, preenche nome/instrumento
+document.getElementById("usuarioExistente").addEventListener("change", (e) => {
+  const option = e.target.selectedOptions[0];
+  const nome = option.textContent;
+  const instrumentos = option.dataset.instrumentos?.split(",") || [];
+
+  if (nome) {
+    document.getElementById("novoNome").value = nome;
+    if (instrumentos.length === 1) {
+      document.getElementById("novoInstrumento").value = instrumentos[0];
+    }
+  }
+});
 
 window.removerParticipante = async (type, id, index = -1) => {
   // 'type' pode ser 'escala' ou 'grupoExtra'
@@ -254,6 +282,58 @@ async function carregarEscalas() {
     tbody.appendChild(tr);
   });
 }
+let excluirContexto = { colecao: null, uid: null, index: null, docId: null };
+
+window.excluirDia = (uid, index) => {
+  excluirContexto = { colecao: "escalas", uid, index };
+  abrirModalConfirmacao("Deseja realmente excluir este evento da escala?");
+};
+
+window.removerParticipante = (colecao, docId) => {
+  excluirContexto = { colecao, docId };
+  abrirModalConfirmacao("Deseja realmente excluir este participante?");
+};
+
+function abrirModalConfirmacao(mensagem) {
+  document.getElementById("textoModalConfirmacao").textContent = mensagem;
+  document.getElementById("modalConfirmacao").style.display = "flex";
+}
+
+function fecharModalConfirmacao() {
+  document.getElementById("modalConfirmacao").style.display = "none";
+}
+
+document
+  .getElementById("btnConfirmarExcluir")
+  .addEventListener("click", async () => {
+    try {
+      if (excluirContexto.colecao === "escalas") {
+        const { uid, index } = excluirContexto;
+        const ref = doc(db, "escalas", uid);
+        const snap = await getDoc(ref);
+        if (!snap.exists()) throw new Error("Documento não encontrado");
+
+        const dados = snap.data();
+        const novaLista = [...(dados.diasSelecionados || [])];
+        novaLista.splice(index, 1);
+
+        await updateDoc(ref, { diasSelecionados: novaLista });
+        exibirToast("Evento excluído com sucesso!");
+      } else {
+        await deleteDoc(
+          doc(db, excluirContexto.colecao, excluirContexto.docId)
+        );
+        exibirToast("Participante removido com sucesso!");
+      }
+
+      fecharModalConfirmacao();
+      carregarEscalas(); // Recarrega a tabela
+    } catch (error) {
+      console.error("Erro ao excluir:", error);
+      exibirToast("Erro ao excluir o registro.", "error");
+    }
+  });
+window.fecharModalConfirmacao = fecharModalConfirmacao;
 
 window.exportarPDF = async function () {
   const escalasRef = collection(db, "escalas");
@@ -433,8 +513,9 @@ document
       }
     }
 
-    // ✅ Adiciona à lista temporária
-    participantesExtras.push({ nome, instrumento, data, descricao });
+    const uid = document.getElementById("usuarioExistente").value || null;
+    participantesExtras.push({ nome, instrumento, data, descricao, uid });
+
     atualizarListaVisual();
     document.getElementById("formNovoParticipante").reset();
   });

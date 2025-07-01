@@ -163,10 +163,12 @@ async function verificarConflito(data, descricao, instrumentoSelecionado) {
   const snapshot = await getDocs(escalasRef);
 
   let conflito = null;
-  const instrumentosMarcados = [];
+  let instrumentosDoUsuario = [];
 
   snapshot.forEach((doc) => {
     const dados = doc.data();
+
+    // 🔍 Verifica se o instrumento já foi marcado por outra pessoa
     if (
       dados.diasSelecionados?.some(
         (d) =>
@@ -175,22 +177,69 @@ async function verificarConflito(data, descricao, instrumentoSelecionado) {
           d.descricao === descricao
       )
     ) {
-      conflito = dados.nome;
+      if (dados.uid !== usuarioAtual.uid) {
+        conflito = dados.nome;
+      }
+    }
+
+    // 🔍 Coleta os instrumentos que o usuário já marcou nesta data+descrição
+    if (dados.uid === usuarioAtual.uid) {
+      dados.diasSelecionados?.forEach((d) => {
+        if (d.data === data && d.descricao === descricao) {
+          instrumentosDoUsuario.push(d.instrumento);
+        }
+      });
     }
   });
 
   if (conflito) {
     exibirToast(`Instrumento já marcado por ${conflito}`);
-  } else {
-    await salvarEscolha(data, descricao, instrumentoSelecionado);
-    exibirToast("Obrigado pelo seu Servir !", "#27ae60");
-    fecharModal();
-
-    // ⏳ Aguarda 2.5 segundos e atualiza a página
-    setTimeout(() => {
-      location.reload();
-    }, 2000);
+    return;
   }
+
+  // 🧠 Regras de limite
+  const isMinistro = usuarioAtual.instrumentos?.includes("Ministro");
+
+  if (!isMinistro && instrumentosDoUsuario.length >= 1) {
+    exibirToast("Você só pode marcar um instrumento por culto.");
+    return;
+  }
+
+  if (isMinistro) {
+    if (instrumentosDoUsuario.length >= 2) {
+      exibirToast("Ministro só pode marcar 2 instrumentos por culto.");
+      return;
+    }
+
+    // Se já marcou um que não é ministro, o próximo tem que ser ministro
+    if (
+      instrumentosDoUsuario.length === 1 &&
+      instrumentosDoUsuario[0] !== "Ministro" &&
+      instrumentoSelecionado !== "Ministro"
+    ) {
+      exibirToast("Ministro deve marcar 'Ministro' + 1 instrumento.");
+      return;
+    }
+
+    // Se já marcou 'Ministro', o segundo não pode ser outro 'Ministro'
+    if (
+      instrumentosDoUsuario.length === 1 &&
+      instrumentosDoUsuario[0] === "Ministro" &&
+      instrumentoSelecionado === "Ministro"
+    ) {
+      exibirToast("Você já marcou 'Ministro'. Escolha outro instrumento.");
+      return;
+    }
+  }
+
+  // ✅ Se passou, salva
+  await salvarEscolha(data, descricao, instrumentoSelecionado);
+  exibirToast("Obrigado pelo seu Servir !", "#27ae60");
+  fecharModal();
+
+  setTimeout(() => {
+    location.reload();
+  }, 2000);
 }
 
 /**

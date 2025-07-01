@@ -38,10 +38,8 @@ export function exibirToast(message, type = "info") {
         // toastContainer.remove();
       }
     }, 500); // Deve ser igual ou maior que a 'duration-500' do Tailwind
-  }, 5000); // Toast visível por 3 segundos
+  }, 2000); // Toast visível por 3 segundos
 }
-
-// ... (Outras funções utilitárias)
 
 /**
  * Exibe um modal de confirmação personalizado.

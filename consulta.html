@@ -43,6 +43,33 @@
           <i class="lucide lucide-folder-minus"></i> Limpar Escala do Mês
         </button>
       </div>
+      <!-- Modal de Confirmação -->
+      <div
+        id="modalConfirmacao"
+        class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50"
+      >
+        <div
+          class="bg-white p-6 rounded-xl shadow-xl text-center max-w-sm w-full"
+        >
+          <h3 class="text-lg font-semibold mb-4" id="textoModalConfirmacao">
+            Tem certeza que deseja excluir este registro?
+          </h3>
+          <div class="flex gap-4 justify-center">
+            <button
+              id="btnConfirmarExcluir"
+              class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+            >
+              Sim
+            </button>
+            <button
+              onclick="fecharModalConfirmacao()"
+              class="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
 
       <div
         id="modalParticipante"
@@ -53,6 +80,17 @@
             Adicionar Participantes
           </h3>
           <form id="formNovoParticipante" class="space-y-3">
+            <!-- Novo campo de seleção de usuário -->
+            <label class="block mb-2"
+              >Selecionar usuário já cadastrado (opcional):</label
+            >
+            <select
+              id="usuarioExistente"
+              class="w-full p-2 border rounded mb-4"
+            >
+              <option value="">— Digite ou selecione um usuário —</option>
+            </select>
+
             <div>
               <label class="block mb-1">Nome</label>
               <input
@@ -64,12 +102,22 @@
             </div>
             <div>
               <label class="block mb-1">Instrumento</label>
-              <input
-                type="text"
+              <select
                 id="novoInstrumento"
-                required
-                class="w-full border rounded px-3 py-2"
-              />
+                class="border rounded w-full px-3 py-2"
+              >
+                <option value="">— Selecione um instrumento —</option>
+                <option value="Ministro">Ministro</option>
+                <option value="Backing-1">Backing-1</option>
+                <option value="Backing-2">Backing-2</option>
+                <option value="Violão">Violão</option>
+                <option value="Guitarra">Guitarra</option>
+                <option value="Baixo">Baixo</option>
+                <option value="Bateria">Bateria</option>
+                <option value="Teclado">Teclado</option>
+                <option value="Violino">Violino</option>
+                <option value="Violino">Cajon</option>
+              </select>
             </div>
             <div>
               <label class="block mb-1">Data</label>
