@@ -32,6 +32,7 @@ async function criarHeader(nome, fotoURL, isAdmin = false) {
         <li><a href="perfil.html" class="block px-4 py-2 hover:bg-gray-100">Perfil</a></li>
         <li><a href="dias.html" class="block px-4 py-2 hover:bg-gray-100">Escala</a></li>
         <li><label for="fotoInput" class="block px-4 py-2 cursor-pointer hover:bg-gray-100">Adicionar Imagem</label></li>
+        <li><a href="musicas.html"class="block px-4 py-2 hover:bg-gray-100 cursor-pointer  text-blue-600">Músicas🎵 </a></li>
         <li><a id="paletaLink" class="block px-4 py-2 hover:bg-gray-100 cursor-pointer  text-blue-600">Paletas</a></li>
         <li><a id="consultaLink" class="block px-4 py-2 hover:bg-gray-100 cursor-pointer  text-blue-600">Consulta</a></li>
         <li><a id="usuariosLink" class="block px-4 py-2 hover:bg-gray-100 cursor-pointer  text-blue-600">Usuários</a></li>

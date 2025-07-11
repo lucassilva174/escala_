@@ -1,0 +1,114 @@
+<!-- musicas.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Galeria de Músicas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 min-h-screen p-6">
+    <h1 class="text-3xl font-bold text-center mb-6">Galeria de Músicas</h1>
+
+    <div class="text-center mb-6">
+      <button
+        onclick="abrirModalCadastro()"
+        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+      >
+        ➕ Adicionar Música
+      </button>
+    </div>
+
+    <div
+      id="galeria"
+      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+    ></div>
+
+    <!-- Modal para exibir iframe expandido -->
+    <div
+      id="modalExpandido"
+      class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50"
+    >
+      <div class="bg-white rounded-lg p-4 shadow-lg max-w-3xl w-full relative">
+        <button
+          onclick="fecharModalExpandido()"
+          class="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 rounded"
+        >
+          Fechar
+        </button>
+        <div id="iframeExpandido" class="aspect-video"></div>
+      </div>
+    </div>
+
+    <!-- Modal de Cadastro -->
+    <div
+      id="modalCadastro"
+      class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-50"
+    >
+      <div class="bg-white p-6 rounded-lg shadow-xl w-11/12 max-w-md relative">
+        <h2 class="text-xl font-bold mb-4">Adicionar Música</h2>
+        <form id="formMusica" class="space-y-4">
+          <input
+            id="tituloMusica"
+            type="text"
+            placeholder="Título da música"
+            required
+            class="w-full px-4 py-2 border rounded"
+          />
+          <textarea
+            id="codigoIframe"
+            placeholder="Cole aqui o link do YouTube ou o código embed (iframe)"
+            required
+            class="w-full px-4 py-2 border rounded h-32"
+          ></textarea>
+          <div class="flex justify-end gap-3">
+            <button
+              type="button"
+              onclick="fecharModalCadastro()"
+              class="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            >
+              Salvar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <!-- Modal de Confirmação -->
+    <div
+      id="confirmationModal"
+      class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50"
+    >
+      <div
+        class="bg-white rounded-lg p-6 max-w-sm w-full text-center shadow-lg"
+      >
+        <p id="confirmationMessage" class="text-lg mb-4">Você tem certeza?</p>
+        <div class="flex justify-center gap-4">
+          <button
+            id="confirmYesBtn"
+            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+          >
+            Sim
+          </button>
+          <button
+            id="confirmNoBtn"
+            class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="scripts/firebase-config.js"></script>
+    <script type="module" src="scripts/musicas.js"></script>
+    <script type="module" src="scripts/header.js"></script>
+    <script type="module" src="scripts/utils.js"></script>
+  </body>
+</html>

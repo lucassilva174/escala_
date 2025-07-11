@@ -50,14 +50,9 @@ function getPeriodoFromDescricao(description) {
   if (lowerDesc.includes("manhã") || lowerDesc.includes("manha")) {
     return "manha";
   }
-  // Se não for explicitamente "noite" ou "manhã", você pode decidir:
-  // - Deixar como "manha" (comportamento atual de fallback)
-  // - Retornar um valor diferente, como "indefinido" ou "geral", para um tratamento mais rigoroso.
-  // Por enquanto, manteremos o padrão "manha" se "noite" não for encontrado.
   return "manha";
 }
 
-// ... (Resto do seu código)
 // 🔁 Controle do modal de edição
 let uidAtual = "";
 let indiceAtual = -1;
@@ -175,8 +170,6 @@ window.removerParticipante = async (type, id, index = -1) => {
   }
 };
 
-// ... (restante do seu código, como fecharModalEdicao, formEdicao listener, etc.)
-
 document.getElementById("formEdicao").addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -209,10 +202,6 @@ document.getElementById("formEdicao").addEventListener("submit", async (e) => {
     exibirToast("Erro ao editar a escala.", "error");
   }
 });
-
-/// scripts/consulta.js
-
-// ... (código existente da função removerParticipante e outras)
 
 async function carregarEscalas() {
   const escalasRef = collection(db, "escalas");

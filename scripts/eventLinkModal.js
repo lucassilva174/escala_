@@ -32,13 +32,18 @@ async function carregarLinksSalvos(eventoId, listaContainer, canEdit) {
           ? { url: item, titulo: `Música ${index + 1}` }
           : item;
 
-      const li = document.createElement("li");
+      const li = document.createElement("li"); // <- CRIAR AQUI
       li.className = "flex items-center justify-between";
-      const a = document.createElement("a");
-      a.href = url;
-      a.target = "_blank";
+
+      const a = document.createElement("a"); // <- CRIAR AQUI
+      a.href = "#";
       a.textContent = `🎵 ${titulo}`;
-      a.className = "mr-2 text-blue-600 hover:underline flex-grow";
+      a.className =
+        "mr-2 text-blue-700 hover:underline flex-grow cursor-pointer";
+      a.onclick = (e) => {
+        e.preventDefault();
+        abrirModalPlayer(url);
+      };
 
       li.appendChild(a);
 
@@ -209,3 +214,53 @@ export function abrirModalLinks(data, descricao) {
     };
   }
 }
+document
+  .getElementById("btnFecharPlayer")
+  .addEventListener("click", fecharModalPlayer);
+// modal do Iframe
+function extrairSrcIframe(input) {
+  if (!input || typeof input !== "string") return "";
+
+  const iframeMatch = input.match(/src=["']([^"']+)["']/);
+  if (iframeMatch) return iframeMatch[1];
+
+  const youtubeRegex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/;
+  const ytMatch = input.match(youtubeRegex);
+  if (ytMatch && ytMatch[1]) {
+    return `https://www.youtube.com/embed/${ytMatch[1]}`;
+  }
+
+  const spotifyRegex =
+    /https?:\/\/open\.spotify\.com\/(track|album|playlist)\/([\w]+)/;
+  const spMatch = input.match(spotifyRegex);
+  if (spMatch && spMatch[1] && spMatch[2]) {
+    return `https://open.spotify.com/embed/${spMatch[1]}/${spMatch[2]}`;
+  }
+
+  return "";
+}
+
+function abrirModalPlayer(link) {
+  const embed = extrairSrcIframe(link);
+  if (!embed) return;
+
+  const modal = document.getElementById("modalPlayerMusica");
+  const container = document.getElementById("playerMusicaEmbed");
+
+  container.innerHTML = `<iframe class="w-full h-full rounded" src="${embed}" frameborder="0"
+    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+    allowfullscreen></iframe>`;
+
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
+function fecharModalPlayer() {
+  const modal = document.getElementById("modalPlayerMusica");
+  const container = document.getElementById("playerMusicaEmbed");
+
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+  container.innerHTML = ""; // limpa o player
+}
+export { fecharModalPlayer };
