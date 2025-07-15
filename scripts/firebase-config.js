@@ -23,7 +23,6 @@ const auth = getAuth(app);
 
 // Exporta os módulos para uso nos outros scripts
 export { firebaseConfig, app, db, auth };
-
 // Se quiser ativar Analytics no futuro:
 // const analytics = getAnalytics(app);
 // export { analytics };

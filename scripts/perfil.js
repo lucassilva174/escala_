@@ -35,6 +35,3 @@ onAuthStateChanged(auth, async (user) => {
 
   await carregarCalendario(); // Chama a função para carregar o calendário
 });
-
-// Outras lógicas que eram globais ou não se encaixavam em outro lugar, mas são específicas do perfil.
-// Exemplo: se houver alguma interação com o HTML do perfil que não seja o calendário ou modais de link.
