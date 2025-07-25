@@ -21,13 +21,13 @@
 
     <div
       id="galeria"
-      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+      class="flex flex-col gap-2 items-start max-w-xl mx-auto"
     ></div>
 
     <!-- Modal para exibir iframe expandido -->
     <div
       id="modalExpandido"
-      class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50"
+      class="fixed inset-0 bg-black bg-opacity-70 hidden z-50 flex items-center justify-center"
     >
       <div class="bg-white rounded-lg p-4 shadow-lg max-w-3xl w-full relative">
         <button
@@ -36,7 +36,7 @@
         >
           Fechar
         </button>
-        <div id="iframeExpandido" class="aspect-video"></div>
+        <div id="iframeExpandido" class="aspect-video w-full"></div>
       </div>
     </div>
 

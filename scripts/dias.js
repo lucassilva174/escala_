@@ -239,7 +239,7 @@ async function verificarConflito(data, descricao, instrumentoSelecionado) {
 
   setTimeout(() => {
     location.reload();
-  }, 2000);
+  }, 4000);
 }
 
 /**
