@@ -1,5 +1,4 @@
-// dias.js atualizado com modal funcional, atualização visual e recarregamento automático
-// Importações do Firebase
+// dias.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getAuth,
@@ -12,6 +11,8 @@ import {
   setDoc,
   getDocs,
   collection,
+  query,
+  where,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Configuração da aplicação Firebase
@@ -22,120 +23,120 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Objeto que armazenará dados do usuário atualmente logado
-let usuarioAtual = {};
+// --------- helpers e estados globais ---------
+const normKey = (data, desc) => `${data}|${(desc || "").trim().toLowerCase()}`;
 
-/**
- * Cria dinamicamente o modal para seleção de instrumentos.
- * O modal será inserido no <body> com id "modalInstrumento".
- */
+let usuarioAtual = {};
+// key -> instrumento (lowercase) definido manualmente no grupoExtra para este usuário
+let grupoExtraPorChave = new Map();
+// key -> [instrumentos (lowercase)] que o usuário marcou em "escalas"
+let instrumentosMarcadosPorKey = new Map();
+
+/* Modal unico no script, foi retirado do html */
 function criarModalInstrumento() {
+  if (
+    document.getElementById("instrumentoModal") &&
+    document.getElementById("listaInstrumentosModal")
+  )
+    return;
+
   const modal = document.createElement("div");
-  modal.id = "modalInstrumento";
-  modal.className = "modal-overlay"; // Classe para estilização de overlay
+  modal.id = "instrumentoModal";
+  modal.className =
+    "fixed inset-0 bg-black/50 hidden items-center justify-center z-50";
   modal.innerHTML = `
-    <div class="modal-content">
-      <h3>Escolha o instrumento</h3>
-      <div id="opcoesInstrumentos" class="instrumentos-lista"></div>
-      <div class="modal-buttons bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded items-center gap-2 cursor-pointer">
-        <button id="cancelarInstrumento">Cancelar</button>
-      </div>
+    <div class="bg-white rounded-lg p-6 max-w-sm w-11/12 text-center">
+      <h3 class="text-lg font-semibold mb-3">Escolha o instrumento</h3>
+      <div id="listaInstrumentosModal" class="flex flex-wrap gap-2 justify-center mb-4"></div>
+      <button id="cancelarInstrumento" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">Cancelar</button>
     </div>
   `;
   document.body.appendChild(modal);
 
-  // Botão de cancelar fecha o modal
   document
     .getElementById("cancelarInstrumento")
     .addEventListener("click", fecharModal);
 }
-
-/**
- * Abre o modal de seleção de instrumento, listando todos os instrumentos possíveis.
- * Também colore os botões de acordo com o que já foi marcado pelo usuário naquele dia e descrição.
- *
- * @param {Array<string>} instrumentos - Lista de instrumentos disponíveis para o usuário.
- * @param {string} data - Data do evento ("YYYY-MM-DD").
- * @param {string} descricao - Descrição do evento (por exemplo, "Culto da Manhã").
- */
-async function abrirModal(instrumentos, data, descricao) {
-  const container = document.getElementById("listaInstrumentosModal");
-  container.innerHTML = ""; // Limpa antes de inserir botões
-
-  // Busca documentos da coleção "escalas" para verificar quais instrumentos já foram marcados
-  const escalaRef = doc(db, "escalas", usuarioAtual.uid);
-  const snap = await getDoc(escalaRef);
-
-  let instrumentosMarcados = [];
-  if (snap.exists()) {
-    const dias = snap.data().diasSelecionados || [];
-    // Filtra apenas os dias que coincidem com a data e descrição atuais
-    instrumentosMarcados = dias
-      .filter((d) => d.data === data && d.descricao === descricao)
-      .map((d) => d.instrumento.toLowerCase());
-  }
-
-  // Para cada instrumento, cria um botão estilizado
-  instrumentos.forEach((inst) => {
-    const isMarcado = instrumentosMarcados.includes(inst.toLowerCase());
-
-    const btn = document.createElement("button");
-    btn.textContent = inst;
-    btn.className = `
-      ${isMarcado ? "bg-green-600" : "bg-blue-600"} 
-      text-white hover:opacity-90 px-4 py-2 rounded transition
-    `;
-    // Ao clicar, chama a função de verificação de conflito
-    btn.onclick = () => verificarConflito(data, descricao, inst);
-    container.appendChild(btn);
-  });
-
-  // Exibe o modal (remove "hidden" e adiciona "flex")
-  const modal = document.getElementById("instrumentoModal");
-  modal.classList.remove("hidden");
-  modal.classList.add("flex");
-}
-
-/**
- * Fecha o modal de seleção de instrumento,
- * removendo as classes "flex" e adicionando "hidden" para escondê-lo.
- */
 function fecharModal() {
   const modal = document.getElementById("instrumentoModal");
   modal.classList.add("hidden");
   modal.classList.remove("flex");
 }
+// liga o botão "Cancelar"
+document
+  .getElementById("cancelarInstrumento")
+  ?.addEventListener("click", fecharModal);
 
-/**
- * Exibe um toast de notificação no centro da tela, com ícone e animação.
- *
- * @param {string} mensagem - Texto a ser exibido no toast.
- * @param {string} tipo - Tipo de toast: "success", "error" ou "info". Define cor e ícone.
- */
+// fechar ao clicar no fundo escuro
+document.getElementById("instrumentoModal")?.addEventListener("click", (e) => {
+  if (e.target.id === "instrumentoModal") fecharModal();
+});
+
+// fechar com tecla ESC
+window.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") fecharModal();
+});
+
+function abrirModal(instrumentos, data, descricao) {
+  const container = document.getElementById("listaInstrumentosModal");
+  container.innerHTML = "";
+
+  const key = normKey(data, descricao);
+
+  const marcadosEscala = instrumentosMarcadosPorKey.get(key) || []; // array lowercase
+  const marcadoExtra = grupoExtraPorChave.get(key) || null; // string lowercase ou null
+
+  const selecionadosLower = new Set(marcadosEscala); // só os de "escalas"
+
+  instrumentos.forEach((inst) => {
+    const instLower = (inst || "").toLowerCase();
+    const btn = document.createElement("button");
+
+    // Se foi definido manualmente no grupoExtra → trava tudo (somente exibe)
+    if (marcadoExtra) {
+      const isOEscolhido = instLower === marcadoExtra;
+      btn.textContent = inst;
+      btn.className =
+        (isOEscolhido ? "bg-green-600" : "bg-gray-400 opacity-60") +
+        " text-white px-4 py-2 rounded cursor-not-allowed";
+      btn.disabled = true;
+      container.appendChild(btn);
+      return;
+    }
+
+    // Sem grupoExtra: destaca os que o usuário já marcou nas "escalas"
+    const isMarcado = selecionadosLower.has(instLower);
+    btn.textContent = inst;
+    btn.className =
+      (isMarcado ? "bg-green-600" : "bg-blue-600") +
+      " text-white hover:opacity-90 px-4 py-2 rounded transition";
+    btn.onclick = () => verificarConflito(data, descricao, inst);
+    container.appendChild(btn);
+  });
+
+  const modal = document.getElementById("instrumentoModal");
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
 function exibirToast(mensagem, tipo = "error") {
-  // Definição dos caminhos SVG para cada tipo de ícone
   const icones = {
-    success: "M5 13l4 4L19 7", // ícone de check
-    error: "M6 18L18 6M6 6l12 12", // ícone de X
-    info: "M13 16h-1v-4h-1m1-4h.01", // ícone de info
+    success: "M5 13l4 4L19 7",
+    error: "M6 18L18 6M6 6l12 12",
+    info: "M13 16h-1v-4h-1m1-4h.01",
   };
-
-  // Definição das classes de cor para cada tipo
   const cores = {
     success: "bg-green-600",
     error: "bg-red-600",
     info: "bg-blue-600",
   };
 
-  // Cria o contêiner do toast
   const toast = document.createElement("div");
   toast.className = `
     fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
     px-6 py-4 rounded-lg shadow-lg text-white z-[9999] flex items-center space-x-3 text-sm 
-    ${cores[tipo] || cores.info} animate-fade
+    ${cores[tipo] || cores.info}
   `;
-
-  // Insere o SVG do ícone e a mensagem
   toast.innerHTML = `
     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${
@@ -144,31 +145,30 @@ function exibirToast(mensagem, tipo = "error") {
     </svg>
     <span>${mensagem}</span>
   `;
-
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 3000);
 }
 
-/**
- * Verifica se já existe conflito de instrumento marcado para a mesma data e descrição.
- * Se houver conflito, exibe toast informando quem marcou. Caso contrário, aplica regras de marcação (ministro/comum),
- * salva a escolha e recarrega a página para atualizar visual.
- *
- * @param {string} data - Data do evento.
- * @param {string} descricao - Descrição do evento.
- * @param {string} instrumentoSelecionado - Instrumento que o usuário está tentando marcar.
- */
 async function verificarConflito(data, descricao, instrumentoSelecionado) {
+  // Bloqueio extra de segurança: se o admin te adicionou no grupoExtra, não pode marcar nada
+  const key = normKey(data, descricao);
+  if (grupoExtraPorChave.has(key)) {
+    exibirToast(
+      "Este evento foi definido manualmente pelo administrador para você.",
+      "info"
+    );
+    return;
+  }
+
   const escalasRef = collection(db, "escalas");
   const snapshot = await getDocs(escalasRef);
 
   let conflito = null;
   let instrumentosDoUsuario = [];
 
-  snapshot.forEach((doc) => {
-    const dados = doc.data();
+  snapshot.forEach((docSnap) => {
+    const dados = docSnap.data();
 
-    // 🔍 Verifica se o instrumento já foi marcado por outra pessoa
     if (
       dados.diasSelecionados?.some(
         (d) =>
@@ -182,7 +182,6 @@ async function verificarConflito(data, descricao, instrumentoSelecionado) {
       }
     }
 
-    // 🔍 Coleta os instrumentos que o usuário já marcou nesta data+descrição
     if (dados.uid === usuarioAtual.uid) {
       dados.diasSelecionados?.forEach((d) => {
         if (d.data === data && d.descricao === descricao) {
@@ -197,7 +196,6 @@ async function verificarConflito(data, descricao, instrumentoSelecionado) {
     return;
   }
 
-  // 🧠 Regras de limite
   const isMinistro = usuarioAtual.instrumentos?.includes("Ministro");
 
   if (!isMinistro && instrumentosDoUsuario.length >= 1) {
@@ -210,8 +208,6 @@ async function verificarConflito(data, descricao, instrumentoSelecionado) {
       exibirToast("Ministro só pode marcar 2 instrumentos por culto.");
       return;
     }
-
-    // Se já marcou um que não é ministro, o próximo tem que ser ministro
     if (
       instrumentosDoUsuario.length === 1 &&
       instrumentosDoUsuario[0] !== "Ministro" &&
@@ -220,8 +216,6 @@ async function verificarConflito(data, descricao, instrumentoSelecionado) {
       exibirToast("Ministro deve marcar 'Ministro' + 1 instrumento.");
       return;
     }
-
-    // Se já marcou 'Ministro', o segundo não pode ser outro 'Ministro'
     if (
       instrumentosDoUsuario.length === 1 &&
       instrumentosDoUsuario[0] === "Ministro" &&
@@ -232,27 +226,14 @@ async function verificarConflito(data, descricao, instrumentoSelecionado) {
     }
   }
 
-  // ✅ Se passou, salva
   await salvarEscolha(data, descricao, instrumentoSelecionado);
-  exibirToast("Obrigado pelo seu Servir !", "#27ae60");
+  exibirToast("Obrigado pelo seu Servir !", "success");
   fecharModal();
-
-  setTimeout(() => {
-    location.reload();
-  }, 4000);
+  setTimeout(() => location.reload(), 4000);
 }
 
-/**
- * Salva a escolha de instrumento do usuário no Firestore.
- * Atualiza ou cria o documento em "escalas" com uid do usuário.
- *
- * @param {string} data - Data do evento no formato "YYYY-MM-DD".
- * @param {string} descricao - Descrição do evento.
- * @param {string} instrumento - Instrumento que o usuário escolheu.
- */
 async function salvarEscolha(data, descricao, instrumento) {
   const { uid, nome, equipe, ministro } = usuarioAtual;
-  // Valida se o usuário continua autenticado
   if (!auth.currentUser || uid !== auth.currentUser.uid) {
     console.error("Tentativa de gravar com UID inválido.");
     exibirToast("Erro de autenticação ao salvar.", "error");
@@ -264,14 +245,14 @@ async function salvarEscolha(data, descricao, instrumento) {
   const diasSelecionados = snapshot.exists()
     ? snapshot.data().diasSelecionados || []
     : [];
-  // Converte data para string ISO (caso não seja string)
+
   const dataISO =
     typeof data === "string"
       ? data
       : new Date(data).toISOString().split("T")[0];
+
   diasSelecionados.push({ data: dataISO, descricao, instrumento });
 
-  // Grava/atualiza documento
   await setDoc(ref, {
     uid,
     nome,
@@ -282,21 +263,17 @@ async function salvarEscolha(data, descricao, instrumento) {
   });
 }
 
-/**
- * Função principal executada quando o DOM é carregado.
- * Cria o modal, monitora o estado de autenticação e popula a lista de dias.
- */
+// --------- boot ---------
 document.addEventListener("DOMContentLoaded", () => {
   criarModalInstrumento();
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
-      // Se não autenticado, redireciona para login
       window.location.href = "index.html";
       return;
     }
 
-    // Busca dados do usuário no Firestore
+    // usuário atual
     const userSnap = await getDoc(doc(db, "usuarios", user.uid));
     if (!userSnap.exists()) return;
 
@@ -304,62 +281,80 @@ document.addEventListener("DOMContentLoaded", () => {
     usuarioAtual = {
       uid: user.uid,
       nome: dados.nome || user.email,
-      instrumentos: dados.instrumentos || [], // lista de instrumentos permitidos
+      instrumentos: dados.instrumentos || [],
       equipe: dados.equipe || "Não informado",
-      ministro: dados.ministro || false, // flag se é ministro principal
+      ministro: dados.ministro || false,
     };
 
-    // Verifica quais dias o usuário já marcou
-    const escalaRef = doc(db, "escalas", user.uid);
-    const escalaSnap = await getDoc(escalaRef);
-    const diasMarcados = new Set();
+    // Limpa/repovoa os mapas globais
+    instrumentosMarcadosPorKey.clear();
+    grupoExtraPorChave.clear();
+
+    // 1) ESCALAS -> preenche instrumentosMarcadosPorKey
+    const escalaSnap = await getDoc(doc(db, "escalas", user.uid));
     if (escalaSnap.exists()) {
-      const dias = escalaSnap.data().diasSelecionados || [];
-      dias.forEach((d) => diasMarcados.add(`${d.data}|${d.descricao}`));
+      (escalaSnap.data().diasSelecionados || []).forEach((d) => {
+        const key = normKey(d.data, d.descricao);
+        const arr = instrumentosMarcadosPorKey.get(key) || [];
+        arr.push((d.instrumento || "").toLowerCase());
+        instrumentosMarcadosPorKey.set(key, arr);
+      });
     }
 
-    // Obtém a lista de dias definidos pelo admin e eventos extras
+    // 2) GRUPO EXTRA -> preenche grupoExtraPorChave (somente docs com uid do usuário)
+    const geSnap = await getDocs(
+      query(collection(db, "grupoExtra"), where("uid", "==", user.uid))
+    );
+    geSnap.forEach((docSnap) => {
+      const g = docSnap.data();
+      const key = normKey(g.data, g.descricao || g.nome);
+      grupoExtraPorChave.set(key, (g.instrumento || "").toLowerCase());
+    });
+
+    // 3) DIAS (admin + extras)
     const diasPadrao = await obterDiasDefinidosPeloAdmin();
     const extrasSnap = await getDocs(collection(db, "eventosExtras"));
-    const eventosExtras = extrasSnap.docs.map((doc) => ({
-      ...doc.data(),
+    const eventosExtras = extrasSnap.docs.map((d) => ({
+      ...d.data(),
       extra: true,
     }));
-    const dias = [...diasPadrao, ...eventosExtras];
-    // Ordena pela data crescente
-    dias.sort((a, b) => a.data.localeCompare(b.data));
 
+    const dias = [...diasPadrao, ...eventosExtras].sort((a, b) =>
+      a.data.localeCompare(b.data)
+    );
+
+    // 4) CARDS
     const diasContainer = document.getElementById("dias-container");
     diasContainer.innerHTML =
       dias.length === 0 ? "<p>Nenhum dia definido pelo administrador.</p>" : "";
 
-    // Para cada dia, cria um wrapper que contém input[type=checkbox] (oculto) e label clicável
+    const chavesMarcadas = new Set([
+      ...instrumentosMarcadosPorKey.keys(),
+      ...grupoExtraPorChave.keys(),
+    ]);
+
     dias.forEach((dia, index) => {
-      const chave = `${dia.data}|${dia.descricao || dia.nome || "Evento"}`;
-      const jaMarcado = diasMarcados.has(chave);
       const descricaoTexto = dia.descricao || dia.nome || "Evento";
+      const key = normKey(dia.data, descricaoTexto);
       const dataFormatada = dia.data.split("-").reverse().join("/");
 
-      // Div que atua como "checkbox customizado"
       const wrapper = document.createElement("div");
-      wrapper.className = `checkbox-dia${jaMarcado ? " marcado" : ""}`;
+      wrapper.className =
+        "checkbox-dia" + (chavesMarcadas.has(key) ? " marcado" : "");
 
-      // Input checkbox oculto
       const input = document.createElement("input");
       input.type = "checkbox";
       input.id = `dia-${index}`;
       input.name = "dias[]";
       input.value = dia.data;
-      input.style.display = "none"; // esconde o input original
+      input.style.display = "none";
 
-      // Label clicável que ocupa toda a área do quadrado
       const label = document.createElement("label");
       label.setAttribute("for", `dia-${index}`);
       label.innerHTML = `
         <strong>${descricaoTexto} (${dataFormatada})</strong>
-        ${dia.extra ? '<span style="color:green;"> (Extra)</span>' : ""}
+        ${dia.extra ? '<span style="color:orange;"> (Extra)</span>' : ""}
       `;
-      // Ao clicar no label, abre o modal de instrumentos
       label.addEventListener("click", (e) => {
         e.preventDefault();
         abrirModal(usuarioAtual.instrumentos, dia.data, descricaoTexto);
@@ -372,13 +367,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-/**
- * Adiciona estilos CSS dinamicamente para:
- * - Tornar cada `.checkbox-dia` um bloco clicável.
- * - Definir as cores de hover e estado marcado.
- * - Estilizar overlay e conteúdo do modal.
- * - Estilizar botões de instrumento dentro do modal.
- */
+// --------- estilos ---------
 const estilo = document.createElement("style");
 estilo.textContent = `
   .checkbox-dia {
@@ -401,44 +390,6 @@ estilo.textContent = `
     background-color: #22c55e;
     color: white;
     border-color: #16a34a;
-  }
-  .modal-overlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  }
-  .modal-content {
-    background: white;
-    padding: 2rem;
-    border-radius: 8px;
-    max-width: 400px;
-    width: 90%;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-    text-align: center;
-  }
-  .instrumentos-lista {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    justify-content: center;
-    margin: 1rem 0;
-  }
-  .btn-instrumento {
-    background-color: #0ea5e9;
-    color: white;
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  .btn-instrumento:hover {
-    background-color: #0284c7;
   }
 `;
 document.head.appendChild(estilo);

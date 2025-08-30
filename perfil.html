@@ -135,6 +135,12 @@
             Adicionar Link
           </button>
         </form>
+        <button
+          id="btnEscolherMusica"
+          class="bg-green-600 hover:bg-green-700 text-white py-2 rounded w-full mb-4"
+        >
+          Escolher Música
+        </button>
 
         <ul id="listaLinks" class="space-y-2 mb-4"></ul>
 
@@ -171,17 +177,49 @@
         <h3 class="text-lg font-semibold text-center mb-4">
           Escolha uma Paleta
         </h3>
-        <div id="galeriaPaletas" class="grid grid-cols-2 gap-4 mb-4">
-          <!-- Paletas serão inseridas aqui dinamicamente -->
-        </div>
         <button
           id="btnFecharEscolhaPaleta"
           class="w-full bg-gray-500 hover:bg-gray-600 text-white py-2 rounded"
         >
           Fechar
         </button>
+        <div id="galeriaPaletas" class="grid grid-cols-2 gap-4 mb-4">
+          <!-- Paletas serão inseridas aqui dinamicamente -->
+        </div>
       </div>
     </div>
+    <!--Modal galeria de música-->
+    <div
+      id="modalEscolherMusica"
+      class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50"
+    >
+      <div
+        class="bg-white p-6 rounded-lg w-full max-w-md max-h-[80vh] overflow-y-auto"
+      >
+        <h3 class="text-lg font-semibold text-center mb-4">
+          Escolha uma Música
+        </h3>
+        <button
+          id="btnFecharEscolhaMusica"
+          class="w-full bg-gray-500 hover:bg-gray-600 text-white py-2 rounded"
+        >
+          Fechar
+        </button>
+        <!--Filtro-->
+        <div class="text-center mb-4">
+          <input
+            type="text"
+            id="filtroMusica"
+            placeholder="Filtrar por nome..."
+            class="px-4 py-2 border rounded w-full max-w-md"
+          />
+        </div>
+        <div id="galeriaMusicas" class="space-y-3 mb-4">
+          <!-- Músicas serão inseridas aqui dinamicamente -->
+        </div>
+      </div>
+    </div>
+
     <!-- Modal de Player de Música -->
     <div
       id="modalPlayerMusica"
@@ -204,6 +242,9 @@
     <script type="module" src="scripts/firebase-config.js"></script>
     <script type="module" src="scripts/utils.js"></script>
     <script type="module" src="scripts/firestoreService.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script src="scripts/youtube-init.js"></script>
+    <script type="module" src="scripts/inatividade.js"></script>
     <script type="module" src="scripts/currentUser.js"></script>
     <script type="module" src="scripts/musicTitleModal.js"></script>
     <script type="module" src="scripts/eventLinkModal.js"></script>
@@ -219,7 +260,6 @@
       document.getElementById("btnCloseModalLinks").onclick = () => {
         document.getElementById("modalLinks").style.display = "none";
       };
-      import { fecharModalPlayer } from "./scripts/eventLinkModal.js";
     </script>
   </body>
 </html>

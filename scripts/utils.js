@@ -1,6 +1,4 @@
 // utils.js
-// utils.js
-
 export function exibirToast(message, type = "info") {
   const toastContainer =
     document.getElementById("toastContainer") ||
@@ -14,31 +12,30 @@ export function exibirToast(message, type = "info") {
     })();
 
   const toast = document.createElement("div");
-  // Classes Tailwind para o toast individual. Removi as classes de animação.
-  toast.className = `p-3 rounded-lg shadow-md text-white text-sm break-words transition-opacity duration-500 ease-out 
-                       ${
-                         type === "success"
-                           ? "bg-green-500"
-                           : type === "error"
-                           ? "bg-red-500"
-                           : "bg-gray-700" // Para info ou padrão
-                       }
-                       opacity-100`; // Começa visível
+
+  const bgColor =
+    type === "success"
+      ? "bg-green-500"
+      : type === "error"
+      ? "bg-red-500"
+      : type === "warning"
+      ? "bg-yellow-500"
+      : "bg-gray-700"; // info ou padrão
+
+  toast.className = `p-3 rounded-lg shadow-md text-white text-sm break-words transition-opacity duration-500 ease-out ${bgColor} opacity-100`;
 
   toast.textContent = message;
   toastContainer.appendChild(toast);
 
-  // Fade out e remoção após 3 segundos
   setTimeout(() => {
-    toast.style.opacity = "0"; // Inicia a transição de opacidade para zero
+    toast.style.opacity = "0";
     setTimeout(() => {
-      toast.remove(); // Remove o elemento do DOM após a transição
-      // Opcional: Se o container ficar vazio, você pode removê-lo
+      toast.remove();
       if (toastContainer.children.length === 0) {
         // toastContainer.remove();
       }
-    }, 500); // Deve ser igual ou maior que a 'duration-500' do Tailwind
-  }, 2000); // Toast visível por 3 segundos
+    }, 500);
+  }, 2000);
 }
 
 /**

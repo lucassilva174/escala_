@@ -4,8 +4,9 @@ import {
   doc,
   setDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { exibirToast } from "./utils.js";
 
-function mostrarToast(mensagem, cor = "bg-green-600") {
+/*function mostrarToast(mensagem, cor = "bg-green-600") {
   const toast = document.getElementById("toast");
   toast.textContent = mensagem;
   toast.className = `
@@ -16,10 +17,9 @@ function mostrarToast(mensagem, cor = "bg-green-600") {
   setTimeout(() => {
     toast.classList.add("hidden");
   }, 3000);
-}
+}*/
 
 document
-
   .getElementById("cadastroForm")
   .addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -30,14 +30,33 @@ document
     const email = document.getElementById("email").value.trim();
     const senha = document.getElementById("senha").value;
 
-    // ✅ Coleta todos os checkboxes, mesmo ocultos com `peer hidden`
-    const checkboxes = document.querySelectorAll("input[type='checkbox']");
+    // ✅ Coleta apenas os checkboxes dentro do formulário
+    const checkboxes = document.querySelectorAll(
+      "#cadastroForm input[type='checkbox']"
+    );
     const instrumentos = Array.from(checkboxes)
       .filter((el) => el.checked)
       .map((el) => el.value);
 
+    // 🔹 Validações extras
+    if (!nome) {
+      exibirToast("Preencha o campo nome.", "info");
+      return;
+    }
+    if (!telefone) {
+      exibirToast("Preencha o campo telefone.", "info");
+      return;
+    }
     if (instrumentos.length === 0) {
-      mostrarToast("Selecione pelo menos um instrumento.");
+      exibirToast("Selecione pelo menos um instrumento.", "info");
+      return;
+    }
+    if (!email.includes("@")) {
+      exibirToast("Digite um e-mail válido.", "info");
+      return;
+    }
+    if (senha.length < 6) {
+      exibirToast("A senha deve ter pelo menos 6 caracteres.", "info");
       return;
     }
 
@@ -57,16 +76,18 @@ document
         equipe,
       });
 
-      mostrarToast("Cadastro realizado com sucesso!");
-      window.location.href = "index.html";
+      exibirToast("Cadastro realizado com sucesso!", "success");
+
+      // ✅ Aguarda antes de redirecionar
+      setTimeout(() => {
+        window.location.href = "index.html";
+      }, 1500);
     } catch (error) {
+      console.error("Erro detalhado:", error);
       if (error.code === "auth/email-already-in-use") {
-        mostrarToast("Este e-mail já está em uso. Tente outro.");
+        exibirToast("Este e-mail já está em uso. Tente outro.", "bg-red-600");
       } else {
-        console.error(error);
-        mostrarToast(
-          "Erro ao cadastrar. Verifique os dados e tente novamente."
-        );
+        exibirToast(`Erro: ${error.message}`, "bg-red-600");
       }
     }
   });

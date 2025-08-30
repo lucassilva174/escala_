@@ -315,7 +315,7 @@ document.querySelectorAll("#filtros input").forEach((input) => {
 });
 
 function aplicarFiltros() {
-  const data = document.getElementById("filtroData").value.toLowerCase();
+  //const data = document.getElementById("filtroData").value.toLowerCase();
   const descricao = document
     .getElementById("filtroDescricao")
     .value.toLowerCase();
@@ -326,7 +326,7 @@ function aplicarFiltros() {
 
   const filtrados = todosRegistros.filter((item) => {
     return (
-      item.data.toLowerCase().includes(data) &&
+      // item.data.toLowerCase().includes(data) &&
       item.descricao.toLowerCase().includes(descricao) &&
       item.nome.toLowerCase().includes(nome) &&
       item.instrumento.toLowerCase().includes(instrumento)

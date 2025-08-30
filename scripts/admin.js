@@ -11,7 +11,7 @@ import {
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
+import { exibirToast, showConfirmationModal } from "./utils.js";
 // Referências principais
 const diasRef = collection(db, "diasDisponiveis");
 const eventosExtrasRef = collection(db, "eventosExtras");
@@ -27,7 +27,7 @@ async function adicionarDia(event) {
   const descricao = document.getElementById("descricao-evento")?.value;
 
   if (!novaData || !descricao) {
-    showToast("Preencha todos os campos.", "error");
+    exibirToast("Preencha todos os campos.", "error");
     return;
   }
 
@@ -42,7 +42,7 @@ async function adicionarDia(event) {
   });
 
   if (!editandoDia && existe) {
-    showToast("Esse evento já foi cadastrado para essa data.", "error");
+    exibirToast("Esse evento já foi cadastrado para essa data.", "error");
     return;
   }
 
@@ -50,10 +50,10 @@ async function adicionarDia(event) {
     if (editandoDia) {
       const docRef = doc(db, "diasDisponiveis", editandoDia);
       await updateDoc(docRef, { data: novaData, descricao });
-      showToast("Dia atualizado com sucesso!");
+      exibirToast("Dia atualizado com sucesso!", "success");
     } else {
       await addDoc(diasRef, { data: novaData, descricao });
-      showToast("Dia adicionado com sucesso!");
+      exibirToast("Dia adicionado com sucesso!", "success");
     }
 
     document.getElementById("form-dias").reset();
@@ -61,7 +61,7 @@ async function adicionarDia(event) {
     carregarDias();
   } catch (error) {
     console.error("Erro ao salvar dia:", error);
-    showToast("Erro ao salvar dia.", "error");
+    exibirToast("Erro ao salvar dia.", "error");
   }
 }
 
@@ -76,11 +76,11 @@ async function excluirDia(id) {
   mostrarModalConfirmacao("Deseja realmente excluir este dia?", async () => {
     try {
       await deleteDoc(doc(db, "diasDisponiveis", id));
-      showToast("Dia excluído com sucesso.");
+      exibirToast("Dia excluído com sucesso.", "success");
       carregarDias();
     } catch (error) {
       console.error("Erro ao excluir dia:", error);
-      showToast("Erro ao excluir dia.", true);
+      exibirToast("Erro ao excluir dia.", "error", true);
     }
   });
 }
@@ -117,7 +117,7 @@ async function adicionarEvento(event) {
   const data = document.getElementById("data-evento")?.value;
 
   if (!nome || !data) {
-    showToast("Preencha todos os campos.", "error");
+    exibirToast("Preencha todos os campos.", "error");
     return;
   }
 
@@ -125,10 +125,10 @@ async function adicionarEvento(event) {
     if (editandoEvento) {
       const eventoDoc = doc(db, "eventosExtras", editandoEvento);
       await updateDoc(eventoDoc, { nome, data });
-      showToast("Evento extra atualizado!");
+      exibirToast("Evento extra atualizado!", "info");
     } else {
       await addDoc(eventosExtrasRef, { nome, data });
-      showToast("Evento extra adicionado!");
+      exibirToast("Evento extra adicionado!", "success");
     }
 
     document.getElementById("form-evento").reset();
@@ -136,7 +136,7 @@ async function adicionarEvento(event) {
     carregarEventos();
   } catch (error) {
     console.error("Erro ao salvar evento:", error);
-    showToast("Erro ao salvar evento.", "error");
+    exibirToast("Erro ao salvar evento.", "error");
   }
 }
 
@@ -153,11 +153,11 @@ async function excluirEvento(id) {
     async () => {
       try {
         await deleteDoc(doc(db, "eventosExtras", id));
-        showToast("Evento extra excluído com sucesso.");
+        exibirToast("Evento extra excluído com sucesso.", "success");
         carregarEventos();
       } catch (error) {
         console.error("Erro ao excluir evento extra:", error);
-        showToast("Erro ao excluir evento.", true);
+        exibirToast("Erro ao excluir evento.", "error", true);
       }
     }
   );
@@ -227,27 +227,17 @@ document.addEventListener("DOMContentLoaded", () => {
       window.location.href = "consulta.html";
     });
   }
+  //botão excluir todos os eventos
+  const btnApagarTodos = document.getElementById("btnApagarTodos");
+  if (btnApagarTodos) {
+    btnApagarTodos.addEventListener("click", apagarTodosEventos);
+  }
 });
 
 window.editarDia = editarDia;
 window.excluirDia = excluirDia;
 window.editarEvento = editarEvento;
 window.excluirEvento = excluirEvento;
-
-// 🔹 Toast estilo
-
-function exibirToast(mensagem, erro = false) {
-  const toast = document.getElementById("toast");
-  toast.textContent = mensagem;
-  toast.classList.toggle("erro", erro);
-  toast.style.opacity = "1";
-  toast.style.visibility = "visible";
-
-  setTimeout(() => {
-    toast.style.opacity = "0";
-    toast.style.visibility = "hidden";
-  }, 3000);
-}
 
 //Usar o modal
 
@@ -279,25 +269,35 @@ function mostrarModalConfirmacao(mensagem, callbackConfirmar) {
   btnCancelar.addEventListener("click", cancelar);
 }
 
-function showToast(message, type = "success") {
-  const toast = document.createElement("div");
+async function apagarTodosEventos() {
+  mostrarModalConfirmacao(
+    "⚠️ Tem certeza que deseja apagar TODOS os eventos? Essa ação não pode ser desfeita.",
+    async () => {
+      try {
+        // Apaga todos os dias disponíveis
+        const diasSnapshot = await getDocs(diasRef);
+        const promisesDias = diasSnapshot.docs.map((docSnap) =>
+          deleteDoc(doc(db, "diasDisponiveis", docSnap.id))
+        );
 
-  const colors = {
-    success: "bg-green-600",
-    error: "bg-red-600",
-    info: "bg-blue-600",
-  };
+        // Apaga todos os eventos extras
+        const eventosSnapshot = await getDocs(eventosExtrasRef);
+        const promisesEventos = eventosSnapshot.docs.map((docSnap) =>
+          deleteDoc(doc(db, "eventosExtras", docSnap.id))
+        );
 
-  toast.className = `
-    fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2
-    px-6 py-3 rounded-lg text-white font-medium shadow-lg text-center z-50
-    ${colors[type] || colors.info}
-  `;
+        // Executa tudo em paralelo
+        await Promise.all([...promisesDias, ...promisesEventos]);
 
-  toast.textContent = message;
-  document.body.appendChild(toast);
+        exibirToast("Todos os eventos foram apagados com sucesso!", "success");
 
-  setTimeout(() => {
-    toast.remove();
-  }, 3000);
+        // Recarrega listas na tela
+        carregarDias();
+        carregarEventos();
+      } catch (error) {
+        console.error("Erro ao apagar todos os eventos:", error);
+        exibirToast("Erro ao apagar os eventos.", "error");
+      }
+    }
+  );
 }

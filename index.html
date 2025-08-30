@@ -100,20 +100,26 @@
           >Cadastre-se</a
         >
       </p>
-      <footer class="mt-3 text-center text-sm text-gray-500 leading-tight">
-  <div class="font-semibold">Versão 3.7</div>
-  <div>Todos os direitos reservados &copy; <span id="anoAtual"></span></div>
-</footer>
+    </div>
 
+    <footer
+      class="fixed bottom-0 left-0 w-full text-center p-4 text-gray-500 text-sm"
+    >
+      <div class="font-semibold">Versão 4.0</div>
+      <div>Todos os direitos reservados &copy; <span id="anoAtual"></span></div>
+    </footer>
 
-
+    <div
+      id="toast"
+      class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-6 py-3 rounded-lg text-white font-medium shadow-lg text-center hidden z-50"
+    ></div>
 
     <script type="module" src="scripts/firebase-config.js"></script>
     <script type="module" src="scripts/auth.js"></script>
     <script>
-  document.getElementById("anoAtual").textContent = new Date().getFullYear();
-</script>
-
+      document.getElementById("anoAtual").textContent =
+        new Date().getFullYear();
+    </script>
 
     <script type="module">
       import { auth } from "./scripts/firebase-config.js";
@@ -150,9 +156,5 @@
           await login(email, senha);
         });
     </script>
-    <div
-      id="toast"
-      class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-6 py-3 rounded-lg text-white font-medium shadow-lg text-center hidden z-50"
-    ></div>
   </body>
 </html>

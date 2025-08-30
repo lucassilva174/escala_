@@ -17,6 +17,20 @@
       >
         ➕ Adicionar Música
       </button>
+      <!--Filtro-->
+      <div class="text-center mb-4">
+        <input
+          type="text"
+          id="filtroMusica"
+          placeholder="Filtrar por nome..."
+          class="px-4 py-2 border rounded w-full max-w-md"
+        />
+      </div>
+
+      <div
+        id="galeria"
+        class="flex flex-col gap-2 items-start max-w-xl mx-auto"
+      ></div>
     </div>
 
     <div
@@ -36,7 +50,9 @@
         >
           Fechar
         </button>
-        <div id="iframeExpandido" class="aspect-video w-full"></div>
+        <div id="iframeExpandido" class="aspect-video w-full">
+          <div id="youtubePlayer" class="w-full h-full rounded"></div>
+        </div>
       </div>
     </div>
 
@@ -107,8 +123,11 @@
 
     <!-- Scripts -->
     <script type="module" src="scripts/firebase-config.js"></script>
+    <script type="module" src="scripts/utils.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script src="scripts/youtube-init.js"></script>
+    <script type="module" src="scripts/inatividade.js"></script>
     <script type="module" src="scripts/musicas.js"></script>
     <script type="module" src="scripts/header.js"></script>
-    <script type="module" src="scripts/utils.js"></script>
   </body>
 </html>
