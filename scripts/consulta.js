@@ -160,7 +160,7 @@ window.removerParticipante = async (type, id, index = -1) => {
       // Lógica para remover de 'grupoExtra'
       const grupoExtraRef = doc(db, "grupoExtra", id); // 'id' é o ID do documento do participante extra
       await deleteDoc(grupoExtraRef);
-      exibirToast("Participante extra removido com sucesso!");
+      exibirToast("Participante extra removido com sucesso!", "success");
     }
 
     location.reload(); // Recarrega a página para atualizar a tabela
@@ -202,26 +202,21 @@ document.getElementById("formEdicao").addEventListener("submit", async (e) => {
     exibirToast("Erro ao editar a escala.", "error");
   }
 });
+//formatar data
+function formatarDataBR(dataISO) {
+  const [ano, mes, dia] = dataISO.split("-");
+  return `${dia}/${mes}/${ano}`;
+}
+let todosRegistros = [];
 
 async function carregarEscalas() {
+  todosRegistros = []; // reset global
+
   const escalasRef = collection(db, "escalas");
   const snapshot = await getDocs(escalasRef);
-  const tabela = document.createElement("table");
-  tabela.classList.add("tabela-escala"); // Mantém a classe existente para estilos gerais da tabela
 
-  const thead = document.createElement("thead");
-  thead.innerHTML = `
-        <tr>
-            <th>Data</th>
-            <th>Descrição</th>
-            <th>Nome</th>
-            <th>Instrumento</th>
-            <th>Ações</th>
-        </tr>
-    `;
-  tabela.appendChild(thead);
-
-  const tbody = document.createElement("tbody");
+  const extrasRef = collection(db, "grupoExtra");
+  const extrasSnap = await getDocs(extrasRef);
 
   snapshot.forEach((docSnap) => {
     const dados = docSnap.data();
@@ -229,48 +224,118 @@ async function carregarEscalas() {
     const nome = dados.nome || "Usuário";
 
     dados.diasSelecionados?.forEach((dia, index) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-                <td>${dia.data}</td>
-                <td>${dia.descricao || "-"}</td>
-                <td>${nome}</td>
-                <td>${dia.instrumento}</td>
-                <td class="flex gap-2 justify-center">
-  <button title="Editar" onclick="editarDia('${uid}', ${index})" class="text-yellow-600 hover:text-yellow-800">
-    ✏️
-  </button>
-  <button title="Excluir" onclick="excluirDia('${uid}', ${index})" class="text-red-600 hover:text-red-800">
-    ❌
-  </button>
-</td>
-
-            `;
-      tbody.appendChild(tr);
+      todosRegistros.push({
+        origem: "escalas",
+        uid,
+        index,
+        nome,
+        data: dia.data,
+        descricao: dia.descricao || "-",
+        instrumento: dia.instrumento,
+      });
     });
   });
 
-  tabela.appendChild(tbody);
-  document.getElementById("tabelaEscala").innerHTML = "";
-  document.getElementById("tabelaEscala").appendChild(tabela);
-
-  const extrasRef = collection(db, "grupoExtra");
-  const extrasSnap = await getDocs(extrasRef);
-
   extrasSnap.forEach((docSnap) => {
     const { data, descricao, nome, instrumento } = docSnap.data();
-    const idExtra = docSnap.id;
+    todosRegistros.push({
+      origem: "grupoExtra",
+      idExtra: docSnap.id,
+      nome: nome || "-",
+      data,
+      descricao: descricao || "-",
+      instrumento: instrumento || "-",
+    });
+  });
+
+  todosRegistros.sort((a, b) => new Date(a.data) - new Date(b.data));
+
+  renderizarTabela(todosRegistros);
+}
+
+function renderizarTabela(registros) {
+  const tabela = document.createElement("table");
+  //tabela.classList.add("tabela-escala");
+  tabela.classList.add(
+    "min-w-full",
+    "border",
+    "divide-y",
+    "divide-gray-200",
+    "bg-white",
+    "rounded"
+  );
+
+  const thead = document.createElement("thead");
+  thead.innerHTML = `
+    <tr>
+      <th>Data</th>
+      <th>Descrição</th>
+      <th>Nome</th>
+      <th>Instrumento</th>
+      <th>Ações</th>
+    </tr>`;
+  tabela.appendChild(thead);
+
+  const tbody = document.createElement("tbody");
+
+  registros.forEach((item) => {
     const tr = document.createElement("tr");
+
+    let acoes = "";
+    if (item.origem === "escalas") {
+      acoes = `
+        <button title="Editar" onclick="editarDia('${item.uid}', ${item.index})" class="text-yellow-600 hover:text-yellow-800">✏️</button>
+        <button title="Excluir" onclick="excluirDia('${item.uid}', ${item.index})" class="text-red-600 hover:text-red-800">❌</button>
+      `;
+    } else {
+      acoes = `
+        <button title="Excluir" onclick="removerParticipante('grupoExtra', '${item.idExtra}')" class="text-red-600 hover:text-red-800">❌</button>
+      `;
+    }
+
     tr.innerHTML = `
-            <td>${data}</td>
-            <td>${descricao || "-"}</td>
-            <td>${nome || "-"}</td>
-            <td>${instrumento || "-"}</td>
-            <td class="flex items-center justify-center gap-2"> <button class=" text-white px-2 py-1 rounded hover:bg-red-700 btn-remover" onclick="removerParticipante('grupoExtra', '${idExtra}')">❌</button>
-            </td>
-        `;
+      <td>${formatarDataBR(item.data)}</td>
+      <td>${item.descricao}</td>
+      <td>${item.nome}</td>
+      <td>${item.instrumento}</td>
+      <td class="flex gap-2 justify-center">${acoes}</td>
+    `;
     tbody.appendChild(tr);
   });
+
+  tabela.appendChild(tbody);
+
+  const container = document.getElementById("tabelaEscala");
+  container.innerHTML = "";
+  container.appendChild(tabela);
 }
+
+document.querySelectorAll("#filtros input").forEach((input) => {
+  input.addEventListener("input", aplicarFiltros);
+});
+
+function aplicarFiltros() {
+  //const data = document.getElementById("filtroData").value.toLowerCase();
+  const descricao = document
+    .getElementById("filtroDescricao")
+    .value.toLowerCase();
+  const nome = document.getElementById("filtroNome").value.toLowerCase();
+  const instrumento = document
+    .getElementById("filtroInstrumento")
+    .value.toLowerCase();
+
+  const filtrados = todosRegistros.filter((item) => {
+    return (
+      // item.data.toLowerCase().includes(data) &&
+      item.descricao.toLowerCase().includes(descricao) &&
+      item.nome.toLowerCase().includes(nome) &&
+      item.instrumento.toLowerCase().includes(instrumento)
+    );
+  });
+
+  renderizarTabela(filtrados);
+}
+
 let excluirContexto = { colecao: null, uid: null, index: null, docId: null };
 
 window.excluirDia = (uid, index) => {
@@ -307,12 +372,12 @@ document
         novaLista.splice(index, 1);
 
         await updateDoc(ref, { diasSelecionados: novaLista });
-        exibirToast("Evento excluído com sucesso!");
+        exibirToast("Evento excluído com sucesso!", "success");
       } else {
         await deleteDoc(
           doc(db, excluirContexto.colecao, excluirContexto.docId)
         );
-        exibirToast("Participante removido com sucesso!");
+        exibirToast("Participante removido com sucesso!", "success");
       }
 
       fecharModalConfirmacao();
@@ -563,7 +628,7 @@ document
       );
       await Promise.all(promises);
 
-      exibirToast("Participantes adicionados com sucesso!");
+      exibirToast("Participantes adicionados com sucesso!", "success");
       participantesExtras = [];
       atualizarListaVisual();
       fecharModalParticipante();

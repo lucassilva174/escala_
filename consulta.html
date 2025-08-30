@@ -119,6 +119,7 @@
                 <option value="Cajon">Cajon</option>
               </select>
             </div>
+            <!--Começa a tabela-->
             <div>
               <label class="block mb-1">Data</label>
               <input
@@ -169,6 +170,27 @@
             </button>
           </div>
         </div>
+      </div>
+      <!--Filtros-->
+      <div id="filtros" class="flex flex-wrap gap-2 mb-4">
+        <input
+          type="text"
+          id="filtroDescricao"
+          placeholder="Descrição"
+          class="border px-3 py-1 rounded w-full sm:w-48"
+        />
+        <input
+          type="text"
+          id="filtroNome"
+          placeholder="Nome"
+          class="border px-3 py-1 rounded w-full sm:w-48"
+        />
+        <input
+          type="text"
+          id="filtroInstrumento"
+          placeholder="Instrumento"
+          class="border px-3 py-1 rounded w-full sm:w-48"
+        />
       </div>
 
       <div
@@ -262,6 +284,7 @@
     <script type="module" src="scripts/consulta.js"></script>
     <script type="module" src="scripts/header.js"></script>
     <script type="module" src="scripts/utils.js"></script>
+    <script type="module" src="scripts/inatividade.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   </body>
 </html>

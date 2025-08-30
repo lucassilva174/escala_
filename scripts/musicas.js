@@ -13,6 +13,23 @@ import {
 
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { exibirToast, showConfirmationModal } from "./utils.js";
+import { configurarPlayerYT } from "./inatividade.js";
+
+window.onYouTubeIframeAPIReady = () => {
+  const player = new YT.Player("youtubePlayer", {
+    height: "360",
+    width: "640",
+    videoId: "",
+    playerVars: { autoplay: 1 },
+    events: {
+      onReady: onPlayerReady,
+      onStateChange: onPlayerStateChange,
+    },
+  });
+
+  window.player = player; // ← isso é crucial
+  configurarPlayerYT(player);
+};
 
 const galeria = document.getElementById("galeria");
 const modalCadastro = document.getElementById("modalCadastro");
@@ -112,37 +129,57 @@ async function carregarMusicas() {
     musicas.push({ id: docSnap.id, ...docSnap.data() });
   });
 
+  if (musicas.length === 0) {
+    galeria.innerHTML =
+      "<p class='text-gray-500'>Nenhuma música cadastrada.</p>";
+    return;
+  }
+
+  const lista = document.createElement("ul");
+  lista.className = "space-y-2 w-full";
+
   musicas.forEach((musica) => {
-    const container = document.createElement("div");
-    container.className =
-      "bg-cyan-900 text-white rounded-xl overflow-hidden mb-4 shadow transition-all duration-300";
+    const item = document.createElement("li");
+    item.className =
+      "bg-white px-4 py-2 rounded shadow hover:bg-gray-100 cursor-pointer flex justify-between items-center";
 
-    const header = document.createElement("div");
-    header.className =
-      "p-4 font-bold cursor-pointer flex justify-between items-center";
-    header.textContent = musica.titulo;
+    const titulo = document.createElement("span");
+    titulo.className = "text-blue-800 font-medium";
+    titulo.textContent = musica.titulo;
 
-    const conteudo = document.createElement("div");
-    conteudo.className = "conteudo hidden bg-white p-2";
+    item.appendChild(titulo);
 
-    const iframe = document.createElement("iframe");
-    iframe.className = "w-full aspect-video rounded";
-    iframe.src = musica.embed;
-    iframe.frameBorder = "0";
-    iframe.allow =
-      "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture";
-    iframe.allowFullscreen = true;
+    /*item.onclick = () => {
+      const iframeContainer = document.getElementById("iframeExpandido");
+      iframeContainer.innerHTML = `
+        <iframe class="w-full h-full rounded" src="${musica.embed}" frameborder="0"
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+          allowfullscreen></iframe>`;
+      document.getElementById("modalExpandido").classList.remove("hidden");
+    };*/
+    item.onclick = () => {
+      const videoId = musica.embed.split("/").pop();
+      console.log("Tentando carregar vídeo:", videoId);
+      console.log("Player atual:", window.player);
 
-    conteudo.appendChild(iframe);
+      if (window.player && typeof window.player.loadVideoById === "function") {
+        window.player.loadVideoById(videoId);
+        document.getElementById("modalExpandido").classList.remove("hidden");
+      } else {
+        exibirToast("Player não disponível no momento.", "error");
+      }
+    };
 
+    // Se for admin ou ministro, mostrar botões
     if (isAdminOuMinistro) {
       const botoes = document.createElement("div");
-      botoes.className = "flex justify-end gap-2 mt-2";
+      botoes.className = "flex gap-2";
 
       const editarBtn = document.createElement("button");
-      editarBtn.textContent = "✏️ Editar";
+      editarBtn.textContent = "✏️";
+      editarBtn.title = "Editar";
       editarBtn.className =
-        "bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600";
+        "bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600";
       editarBtn.onclick = (e) => {
         e.stopPropagation();
         editarId = musica.id;
@@ -154,9 +191,10 @@ async function carregarMusicas() {
       };
 
       const excluirBtn = document.createElement("button");
-      excluirBtn.textContent = "🗑️ Excluir";
+      excluirBtn.textContent = "🗑️";
+      excluirBtn.title = "Excluir";
       excluirBtn.className =
-        "bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700";
+        "bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700";
       excluirBtn.onclick = async (e) => {
         e.stopPropagation();
         const confirmado = await showConfirmationModal(
@@ -176,17 +214,120 @@ async function carregarMusicas() {
 
       botoes.appendChild(editarBtn);
       botoes.appendChild(excluirBtn);
-      conteudo.appendChild(botoes);
+      item.appendChild(botoes);
     }
 
-    container.appendChild(header);
-    container.appendChild(conteudo);
-    header.onclick = () => conteudo.classList.toggle("hidden");
-    galeria.appendChild(container);
+    lista.appendChild(item);
   });
+
+  galeria.appendChild(lista);
 }
 
 // Exibir modal expandido (opcional - se desejar implementar)
 window.fecharModalExpandido = () => {
   document.getElementById("modalExpandido").classList.add("hidden");
 };
+window.configurarPlayerYT = configurarPlayerYT;
+
+// Filtro
+
+const inputFiltro = document.getElementById("filtroMusica");
+
+if (inputFiltro) {
+  inputFiltro.addEventListener("input", () => {
+    const termo = inputFiltro.value.trim().toLowerCase();
+
+    // Filtrar músicas pelo título
+    const filtradas = musicas.filter((musica) =>
+      musica.titulo.toLowerCase().includes(termo)
+    );
+
+    renderizarMusicas(filtradas);
+  });
+}
+
+function renderizarMusicas(listaMusicas) {
+  galeria.innerHTML = "";
+
+  if (listaMusicas.length === 0) {
+    galeria.innerHTML =
+      "<p class='text-gray-500'>Nenhuma música encontrada.</p>";
+    return;
+  }
+
+  const lista = document.createElement("ul");
+  lista.className = "space-y-2 w-full";
+
+  listaMusicas.forEach((musica) => {
+    const item = document.createElement("li");
+    item.className =
+      "bg-white px-4 py-2 rounded shadow hover:bg-gray-100 cursor-pointer flex justify-between items-center";
+
+    const titulo = document.createElement("span");
+    titulo.className = "text-blue-800 font-medium";
+    titulo.textContent = musica.titulo;
+
+    item.appendChild(titulo);
+
+    item.onclick = () => {
+      const videoId = musica.embed.split("/").pop();
+      if (window.player && typeof window.player.loadVideoById === "function") {
+        window.player.loadVideoById(videoId);
+        document.getElementById("modalExpandido").classList.remove("hidden");
+      } else {
+        exibirToast("Player não disponível no momento.", "error");
+      }
+    };
+
+    // Botões de edição e exclusão (se for admin)
+    if (isAdminOuMinistro) {
+      const botoes = document.createElement("div");
+      botoes.className = "flex gap-2";
+
+      const editarBtn = document.createElement("button");
+      editarBtn.textContent = "✏️";
+      editarBtn.title = "Editar";
+      editarBtn.className =
+        "bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600";
+      editarBtn.onclick = (e) => {
+        e.stopPropagation();
+        editarId = musica.id;
+        inputTitulo.value = musica.titulo;
+        inputIframe.value = `https://www.youtube.com/watch?v=${musica.embed
+          .split("/")
+          .pop()}`;
+        modalCadastro.style.display = "flex";
+      };
+
+      const excluirBtn = document.createElement("button");
+      excluirBtn.textContent = "🗑️";
+      excluirBtn.title = "Excluir";
+      excluirBtn.className =
+        "bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700";
+      excluirBtn.onclick = async (e) => {
+        e.stopPropagation();
+        const confirmado = await showConfirmationModal(
+          "Deseja excluir esta música?"
+        );
+        if (!confirmado) return;
+
+        try {
+          await deleteDoc(doc(db, "linksMusicas", musica.id));
+          exibirToast("Música excluída!", "success");
+          carregarMusicas();
+        } catch (err) {
+          console.error("Erro ao excluir:", err);
+          exibirToast("Erro ao excluir música.", "error");
+        }
+      };
+
+      botoes.appendChild(editarBtn);
+      botoes.appendChild(excluirBtn);
+      item.appendChild(botoes);
+    }
+
+    lista.appendChild(item);
+  });
+
+  galeria.appendChild(lista);
+}

@@ -121,6 +121,7 @@ export async function carregarCalendario() {
             "Bateria",
             "Teclado",
             "Violino",
+            "Cajon",
           ];
 
           return lista.sort((a, b) => {

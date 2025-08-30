@@ -97,12 +97,18 @@ async function carregarUsuarios() {
       <button onclick="abrirModalEditarUsuario('${usuarioId}')" class="bg-yellow-500 text-white py-2 px-4 rounded">
         Editar
       </button>
-      <button onclick="alternarStatusAtivo('${usuarioId}', ${isAtivo})"
-              class="${
-                isAtivo ? "bg-gray-800" : "bg-green-600"
-              } text-white py-2 px-4 rounded">
-        ${isAtivo ? "Inativar" : "Ativar"}
-      </button>
+      ${
+        !usuario.admin && !usuario.isAdmin
+          ? `
+        <button onclick="alternarStatusAtivo('${usuarioId}', ${isAtivo})"
+                class="${
+                  isAtivo ? "bg-gray-800" : "bg-green-600"
+                } text-white py-2 px-4 rounded">
+          ${isAtivo ? "Inativar" : "Ativar"}
+        </button>
+      `
+          : ""
+      }
     </div>
   </div>
 `;
