@@ -98,6 +98,40 @@
           >
             Fechar
           </button>
+          <!--Modal para selecionar os dias da escala-->
+          <button
+            id="btnAbrirModalEscala"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg w-full mt-1"
+          >
+            Preencher Escala
+          </button>
+
+          <!-- Modal de seleção de dias -->
+          <div
+            id="modalEscalaPerfil"
+            class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          >
+            <div
+              class="bg-white rounded-2xl shadow-lg w-11/12 md:w-2/3 lg:w-1/2 max-h-[85vh] overflow-y-auto p-6"
+            >
+              <h2 class="text-xl font-bold mb-4 text-center">
+                Selecione os dias disponíveis
+              </h2>
+              <div
+                id="listaDiasDisponiveisPerfil"
+                class="grid grid-cols-2 gap-4"
+              ></div>
+              <div class="text-center mt-6">
+                <button
+                  id="btnFecharModalEscala"
+                  class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg"
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+
           <button
             id="btnAddLink"
             class="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded hidden"

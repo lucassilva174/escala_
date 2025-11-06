@@ -12,6 +12,8 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { exibirToast, showConfirmationModal } from "./utils.js";
+import { registrarMovimentacao } from "./logger.js";
+
 // Referências principais
 const diasRef = collection(db, "diasDisponiveis");
 const eventosExtrasRef = collection(db, "eventosExtras");
@@ -54,6 +56,13 @@ async function adicionarDia(event) {
     } else {
       await addDoc(diasRef, { data: novaData, descricao });
       exibirToast("Dia adicionado com sucesso!", "success");
+      //Registro de movimentação
+      await registrarMovimentacao({
+        acao: "Nova escala adicionada",
+        colecao: "escalas",
+        alvo: `${nomeUsuario} (${instrumento})`,
+        tipo: "criação",
+      });
     }
 
     document.getElementById("form-dias").reset();

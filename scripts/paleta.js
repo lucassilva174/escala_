@@ -15,6 +15,7 @@ import {
   onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { exibirToast } from "./utils.js";
+import { registrarMovimentacao } from "./logger.js";
 
 const auth = getAuth();
 const lista = document.getElementById("paletasContainer");
