@@ -12,8 +12,12 @@ import {
   where,
   deleteDoc,
   setDoc,
+  onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { exibirToast, showConfirmationModal } from "./utils.js";
+import { registrarMovimentacao } from "./logger.js";
+
+
 // 🔒 Verifica se administrador
 if (window.location.pathname.endsWith("consulta.html")) {
   auth.onAuthStateChanged(async (user) => {
@@ -775,3 +779,10 @@ if (abrirModalBtn)
 
 const visualizarBtn = document.getElementById("btnVisualizarPDF");
 if (visualizarBtn) visualizarBtn.addEventListener("click", visualizarEscala);
+
+// 🔧 Referências básicas
+// ======================
+const user = auth.currentUser;
+const modalMovimentacoes = document.getElementById("modalMovimentacoes");
+const listaMovimentacoes = document.getElementById("listaMovimentacoes");
+const btnVerMovimentacoes = document.getElementById("btnVerMovimentacoes");

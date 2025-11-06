@@ -5,6 +5,7 @@ import {
   setDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { exibirToast } from "./utils.js";
+import { registrarMovimentacao } from "./logger.js";
 
 /*function mostrarToast(mensagem, cor = "bg-green-600") {
   const toast = document.getElementById("toast");
@@ -74,6 +75,13 @@ document
         email,
         instrumentos,
         equipe,
+      });
+      //Registro de movimentação
+      await registrarMovimentacao({
+        acao: "Novo usuário adicionado",
+        colecao: "usuarios",
+        alvo: nomeInput.value,
+        tipo: "criação",
       });
 
       exibirToast("Cadastro realizado com sucesso!", "success");

@@ -9,6 +9,8 @@ import {
   deleteDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db, auth } from "./firebase-config.js";
+import { registrarMovimentacao } from "./logger.js";
+
 
 function mostrarToast(mensagem, tipo = "success") {
   const toast = document.getElementById("toast");

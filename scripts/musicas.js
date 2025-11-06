@@ -14,6 +14,8 @@ import {
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { exibirToast, showConfirmationModal } from "./utils.js";
 import { configurarPlayerYT } from "./inatividade.js";
+import { registrarMovimentacao } from "./logger.js";
+
 
 window.onYouTubeIframeAPIReady = () => {
   const player = new YT.Player("youtubePlayer", {

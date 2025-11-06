@@ -14,6 +14,8 @@ import {
   collection,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { configurarPlayerYT } from "./inatividade.js";
+import { registrarMovimentacao } from "./logger.js";
+
 
 async function carregarLinksSalvos(eventoId, listaContainer, canEdit) {
   //console.log("Passando pelo CarregarLinksSalvos", carregarLinksSalvos);
